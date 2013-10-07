@@ -1,9 +1,14 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Net.Json;
+
+
 
 // offered to the public domain for any use with no restriction
 // and also with no warranty of any kind, please enjoy. - David Jeske. 
@@ -56,9 +61,12 @@ namespace Bend.Util {
             try {
                 parseRequest();
                 readHeaders();
+                
                 if (http_method.Equals("GET")) {
+                    Console.WriteLine("http_method: " + http_method);
                     handleGETRequest();
                 } else if (http_method.Equals("POST")) {
+                    Console.WriteLine("http_method: " + http_method);
                     handlePOSTRequest();
                 }
             } catch (Exception e) {
@@ -156,14 +164,14 @@ namespace Bend.Util {
         }
 
         public void writeSuccess(string content_type="text/html") {
-            outputStream.WriteLine("HTTP/1.0 200 OK");            
+            outputStream.WriteLine("HTTP/1.1 200 OK");            
             outputStream.WriteLine("Content-Type: " + content_type);
             outputStream.WriteLine("Connection: close");
             outputStream.WriteLine("");
         }
 
         public void writeFailure() {
-            outputStream.WriteLine("HTTP/1.0 404 File not found");
+            outputStream.WriteLine("HTTP/1.1 404 File not found");
             outputStream.WriteLine("Connection: close");
             outputStream.WriteLine("");
         }
@@ -174,15 +182,49 @@ namespace Bend.Util {
         protected int port;
         TcpListener listener;
         bool is_active = true;
+        public Hashtable respStatus;
        
         public HttpServer(int port) {
             this.port = port;
+            respStatusInit();
         }
 
+        private void respStatusInit()
+        {
+            respStatus = new Hashtable();
+
+            respStatus.Add(200, "200 Ok");
+            respStatus.Add(201, "201 Created");
+            respStatus.Add(202, "202 Accepted");
+            respStatus.Add(204, "204 No Content");
+
+            respStatus.Add(301, "301 Moved Permanently");
+            respStatus.Add(302, "302 Redirection");
+            respStatus.Add(304, "304 Not Modified");
+
+            respStatus.Add(400, "400 Bad Request");
+            respStatus.Add(401, "401 Unauthorized");
+            respStatus.Add(403, "403 Forbidden");
+            respStatus.Add(404, "404 Not Found");
+
+            respStatus.Add(500, "500 Internal Server Error");
+            respStatus.Add(501, "501 Not Implemented");
+            respStatus.Add(502, "502 Bad Gateway");
+            respStatus.Add(503, "503 Service Unavailable");
+        }
+        //IPAddress IP = new IPAddress(0x0100007F);
+
         public void listen() {
-            listener = new TcpListener(port);
+            string host = Dns.GetHostName();
+            IPHostEntry ip = Dns.GetHostByName(host);
+            IPAddress MyAddress = new IPAddress(ip.AddressList[0].Address);
+            Console.WriteLine(MyAddress.ToString());
+
+            listener = new TcpListener(MyAddress, port);
             listener.Start();
-            while (is_active) {                
+            Console.WriteLine("Listening On: " + port.ToString());
+            while (is_active) {
+                Console.WriteLine("Waiting for connection...\n");
                 TcpClient s = listener.AcceptTcpClient();
                 HttpProcessor processor = new HttpProcessor(s, this);
                 Thread thread = new Thread(new ThreadStart(processor.process));
@@ -212,14 +254,73 @@ namespace Bend.Util {
 
             Console.WriteLine("request: {0}", p.http_url);
             p.writeSuccess();
-            p.outputStream.WriteLine("<html><body><h1>test server</h1>");
-            p.outputStream.WriteLine("Current Time: " + DateTime.Now.ToString());
-            p.outputStream.WriteLine("url : {0}", p.http_url);
+            JsonTextParser parser = new JsonTextParser();
+            string jsonText = 
+                "{"+
+                " \"headers\": {" +
+                " \"Accept-Encoding\": \"gzip,deflate,sdch\"," +
+                " \"Cookie\": \"_gauges_unique_month=1; _gauges_unique_year=1; _gauges_unique=1\"," +
+                " \"Accept-Language\": \"en-GB,en-US;q=0.8,en;q=0.6\"," +
+                " \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\"," +
+                " \"Host\": \"paymentserver.dynu.com\"," +
+                " \"Connection\": \"close\"," +
+                " \"User-Agent\": \"Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36\"" +
+                " }," +
+                " \"body\": {" +
+                " \"messageType\": {" +
+                " \"request\": \" \"," +
+                " \"response\": \" \"," +
+                " \"details\": \" \"" +
+                " }," +
+                " \"user\": {" +
+                " \"userType\": \" \"," +
+                " \"userID\": {" +
+                " \"username\": \" \"," +
+                " \"password\": \" \"" +
+                " },"  +
+                " \"account\": {" +
+                " \"bankCode\": \" \"," +
+                " \"accountNum\": \" \"," +
+                " \"accountPWD\": \" \"," +
+                " \"acctBalance\": \" \"" +
+                " }," +
+                " \"hardwareInfo\": {" +
+                " \"POSHWID\": \" \"," +
+                " \"currentDK\": \" \"," +
+                " \"nextDK\": \" \"" +
+                " }," +
+                " \"transactionHistory\": \" \"" +
+                " },"+
+                " \"merchant\": {" +
+                " \"merchantID\": \" \"," +
+                " \"merchantName\": \" \"" +
+                " }," +
+                " \"customer\": {" +
+                " \"custUsername\": \" \"," +
+                " \"custPWD\": \" \"" +
+                " }," +
+                " \"transactions\": {" +
+                " \"transactionID\": \" \"," +
+                " \"transactionDate\": {" +
+                " \"year\": \" \"," +
+                " \"month\": \" \","  +
+                " \"day\": \" \"" +
+                " }," +
+                " \"transactionTime\": {" +
+                " \"hour\": \" \"," +
+                " \"minute\": \" \"," +
+                " \"second\": \" \"" +
+                " }," +
+                " \"merchantID\": { \"username\": \" \" }," +
+                " \"debitAmount\": \" \"," +
+                " \"creditAmount\": \" \"," +
+                " \"balance\": \" \"," +
+                " \"receiptNo\": \" \"" +
+                " }" +
+                " }" +
+                "}";
 
-            p.outputStream.WriteLine("<form method=post action=/form>");
-            p.outputStream.WriteLine("<input type=text name=foo value=foovalue>");
-            p.outputStream.WriteLine("<input type=submit name=bar value=barvalue>");
-            p.outputStream.WriteLine("</form>");
+            p.outputStream.WriteLine(parser.Parse(jsonText));
         }
 
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData) {
@@ -227,10 +328,73 @@ namespace Bend.Util {
             string data = inputData.ReadToEnd();
 
             p.writeSuccess();
-            p.outputStream.WriteLine("<html><body><h1>test server</h1>");
-            p.outputStream.WriteLine("<a href=/test>return</a><p>");
-            p.outputStream.WriteLine("postbody: <pre>{0}</pre>", data);
-            
+            JsonTextParser parser = new JsonTextParser();
+            string jsonText =
+                "{" +
+                " \"headers\": {" +
+                " \"Accept-Encoding\": \"gzip,deflate,sdch\"," +
+                " \"Cookie\": \"_gauges_unique_month=1; _gauges_unique_year=1; _gauges_unique=1\"," +
+                " \"Accept-Language\": \"en-GB,en-US;q=0.8,en;q=0.6\"," +
+                " \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\"," +
+                " \"Host\": \"paymentserver.dynu.com\"," +
+                " \"Connection\": \"close\"," +
+                " \"User-Agent\": \"Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36\"" +
+                " }," +
+                " \"body\": {" +
+                " \"messageType\": {" +
+                " \"request\": \" \"," +
+                " \"response\": \" \"," +
+                " \"details\": \" \"" +
+                " }," +
+                " \"user\": {" +
+                " \"userType\": \" \"," +
+                " \"userID\": {" +
+                " \"username\": \" \"," +
+                " \"password\": \" \"" +
+                " }," +
+                " \"account\": {" +
+                " \"bankCode\": \" \"," +
+                " \"accountNum\": \" \"," +
+                " \"accountPWD\": \" \"," +
+                " \"acctBalance\": \" \"" +
+                " }," +
+                " \"hardwareInfo\": {" +
+                " \"POSHWID\": \" \"," +
+                " \"currentDK\": \" \"," +
+                " \"nextDK\": \" \"" +
+                " }," +
+                " \"transactionHistory\": \" \"" +
+                " }," +
+                " \"merchant\": {" +
+                " \"merchantID\": \" \"," +
+                " \"merchantName\": \" \"" +
+                " }," +
+                " \"customer\": {" +
+                " \"custUsername\": \" \"," +
+                " \"custPWD\": \" \"" +
+                " }," +
+                " \"transactions\": {" +
+                " \"transactionID\": \" \"," +
+                " \"transactionDate\": {" +
+                " \"year\": \" \"," +
+                " \"month\": \" \"," +
+                " \"day\": \" \"" +
+                " }," +
+                " \"transactionTime\": {" +
+                " \"hour\": \" \"," +
+                " \"minute\": \" \"," +
+                " \"second\": \" \"" +
+                " }," +
+                " \"merchantID\": { \"username\": \" \" }," +
+                " \"debitAmount\": \" \"," +
+                " \"creditAmount\": \" \"," +
+                " \"balance\": \" \"," +
+                " \"receiptNo\": \" \"" +
+                " }" +
+                " }" +
+                "}";
+
+            p.outputStream.WriteLine(parser.Parse(jsonText));      
 
         }
     }
@@ -241,15 +405,13 @@ namespace Bend.Util {
             if (args.GetLength(0) > 0) {
                 httpServer = new MyHttpServer(Convert.ToInt16(args[0]));
             } else {
-                httpServer = new MyHttpServer(8080);
+                httpServer = new MyHttpServer(80);
             }
             Thread thread = new Thread(new ThreadStart(httpServer.listen));
             thread.Start();
             return 0;
         }
-
     }
-
 }
 
 

@@ -26,8 +26,6 @@ namespace Bend.Util {
         public HttpServer srv;
         public X509Certificate serverCert;
 
-        private Stream inputStream;
-        public StreamWriter outputStream;
         public SslStream sslStream;
 
         public String http_method;
@@ -57,6 +55,7 @@ namespace Bend.Util {
             }            
             return data;
         }
+
         public void process() {
 
             // A client has connected. Create the  
@@ -74,30 +73,18 @@ namespace Bend.Util {
                 DisplayStreamProperties(sslStream);
 
                 // Set timeouts for the read and write to 5 seconds.
-                sslStream.ReadTimeout = 500000;
-                sslStream.WriteTimeout = 500000;
+                sslStream.ReadTimeout = 5000;
+                sslStream.WriteTimeout = 5000;
                 Console.WriteLine("Read timeout: " + sslStream.ReadTimeout);
                 Console.WriteLine("Write timeout: " + sslStream.WriteTimeout);
 
-                // Write a message to the client. 
+                // Write status message to the client. 
                 byte[] message = Encoding.UTF8.GetBytes("HTTP/1.1 200 OK\r\n");
                 Console.WriteLine("Sending status message.");
                 sslStream.Write(message);
 
-                // Read a message from the client.   
-                //Console.WriteLine("Waiting for client message...");
-                //string messageData = ReadMessage(sslStream);
-                //Console.WriteLine("Received: {0}", messageData);
-                  
-                /*// we can't use a StreamReader for input, because it buffers up extra data on us inside it's
-                // "processed" view of the world, and we want the data raw after the headers
-                inputStream = new BufferedStream(socket.GetStream());
-
-                // we probably shouldn't be using a streamwriter for all output from handlers either
-                outputStream = new StreamWriter(new BufferedStream(socket.GetStream()));*/
                 try
                 {
-
                     parseRequest();
                     readHeaders();
 
@@ -118,11 +105,6 @@ namespace Bend.Util {
                     writeFailure();
                     return;
                 }
-                //sslStream.Flush();
-                // bs.Flush(); // flush any remaining output
-                //inputStream = null; outputStream = null; // bs = null;      
-               // sslStream = null;
-              //  socket.Close();
             }
             catch (AuthenticationException e)
             {
@@ -230,46 +212,12 @@ namespace Bend.Util {
 
         }
 
-        public void writeSuccess(string content_type="application/json") {
-            string text = "HTTP/1.1 200 OK\n"+"Content-Type: " + content_type+"\n"+" ";
-            byte[] message = Encoding.UTF8.GetBytes(text);
-            sslStream.Write(message);
-        }
-
         public void writeFailure() {
             string text = "HTTP/1.1 404 File not found\n"+"Connection: close\n";
             byte[] message = Encoding.UTF8.GetBytes(text);
             sslStream.Write(message);
         }
-
-        public string ReadMessage(SslStream sslStream)
-        {
-            // Read the  message sent by the client. 
-            // The client signals the end of the message using the 
-            // "<EOF>" marker.
-            byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
-            int bytes = -1;
-            do
-            {
-                // Read the client's test message.
-                bytes = sslStream.Read(buffer, 0, buffer.Length);
-
-                // Use Decoder class to convert from bytes to UTF8 
-                // in case a character spans two buffers.
-                Decoder decoder = Encoding.UTF8.GetDecoder();
-                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
-                decoder.GetChars(buffer, 0, bytes, chars, 0);
-                messageData.Append(chars);
-                // Check for EOF or an empty message. 
-                if (messageData.ToString().IndexOf("<EOF>") != -1)
-                {
-                    break;
-                }
-            } while (bytes != 0);
-
-            return messageData.ToString();
-        }
+        
         static void DisplaySecurityLevel(SslStream stream)
         {
             Console.WriteLine("Cipher: {0} strength {1}", stream.CipherAlgorithm, stream.CipherStrength);

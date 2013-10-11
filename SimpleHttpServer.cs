@@ -324,11 +324,13 @@ namespace Bend.Util {
                 headers.Add(new JsonStringValue("Accept-Language", "en-CA,en-GB,en-US;q=0.8,en;q=0.6"));
                 headers.Add(new JsonStringValue("Accept", "application/json, text/json"));
                 headers.Add(new JsonStringValue("Host", "paymentserver.dynu.com"));
+                headers.Add(new JsonStringValue("Referer", "https://paymentserver.dynu.com"));
                 headers.Add(new JsonStringValue("Connection", "close"));
                 headers.Add(new JsonStringValue("User-Agent", "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"));
 
                 messageType = new JsonObjectCollection();
                 messageType.Name = "messageType";
+                messageType.Add(new JsonNumericValue("code", -1));
                 messageType.Add(new JsonBooleanValue("request", false));
                 messageType.Add(new JsonBooleanValue("response", false));
                 messageType.Add(new JsonStringValue("details", ""));

@@ -9,17 +9,14 @@ using System.Threading;
 using System.Net.Json;
 using System.Net.Security;
 using System.Security.Authentication;
+using Newtonsoft.Json;
 using System.Security.Cryptography.X509Certificates;
+using PaymentServer;
 
 
 
-// offered to the public domain for any use with no restriction
-// and also with no warranty of any kind, please enjoy. - David Jeske. 
-
-// simple HTTP explanation
-// http://www.jmarshall.com/easy/http/
-
-namespace Bend.Util {
+namespace PaymentServer
+{
 
     public class HttpProcessor {
         public TcpClient socket;        
@@ -306,148 +303,20 @@ namespace Bend.Util {
     }
 
     public class MyHttpServer : HttpServer {
-        JsonObjectCollection headers;
-        JsonObjectCollection messageType;
-        JsonObjectCollection user;
-        JsonObjectCollection merchant;
-        JsonObjectCollection customer;
-        JsonObjectCollection transactions;
+
 
         public MyHttpServer(int port, string cert)
             : base(port, cert) {
-
-                //Define outgoing JSON message structures 
-                headers = new JsonObjectCollection();
-                headers.Name = "headers";
-                headers.Add(new JsonStringValue("Accept-Encoding", "gzip,deflate,sdch"));
-                headers.Add(new JsonStringValue("Cookie", "_gauges_unique_month=1; _gauges_unique_year=1; _gauges_unique=1"));
-                headers.Add(new JsonStringValue("Accept-Language", "en-CA,en-GB,en-US;q=0.8,en;q=0.6"));
-                headers.Add(new JsonStringValue("Accept", "application/json, text/json"));
-                headers.Add(new JsonStringValue("Host", "paymentserver.dynu.com"));
-                headers.Add(new JsonStringValue("Referer", "https://paymentserver.dynu.com"));
-                headers.Add(new JsonStringValue("Connection", "close"));
-                headers.Add(new JsonStringValue("User-Agent", "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"));
-
-                messageType = new JsonObjectCollection();
-                messageType.Name = "messageType";
-                messageType.Add(new JsonNumericValue("code", -1));
-                messageType.Add(new JsonBooleanValue("request", false));
-                messageType.Add(new JsonBooleanValue("response", false));
-                messageType.Add(new JsonStringValue("details", ""));
-
-                JsonObjectCollection account = new JsonObjectCollection();
-                account.Name = "account";
-                account.Add(new JsonStringValue("bankCode", ""));
-                account.Add(new JsonStringValue("accountNum", ""));
-                account.Add(new JsonStringValue("accountPWD", ""));
-                account.Add(new JsonNumericValue("acctBalance", -1));
-
-                JsonObjectCollection hardwareInfo = new JsonObjectCollection();
-                hardwareInfo.Name = "hardwareInfo";
-                hardwareInfo.Add(new JsonNumericValue("POSHWID", -1));
-                hardwareInfo.Add(new JsonStringValue("currentDK", ""));
-                hardwareInfo.Add(new JsonStringValue("nextDK", ""));
-
-                JsonObjectCollection userID = new JsonObjectCollection();
-                userID.Name = "userID";
-                userID.Add(new JsonStringValue("username", ""));
-                userID.Add(new JsonStringValue("password", ""));
-
-                user = new JsonObjectCollection();
-                user.Name = "user";
-                user.Add(new JsonStringValue("userType", ""));
-                user.Add(new JsonStringValue("transactionHistory", ""));
-                user.Add(account);
-                user.Add(hardwareInfo);
-                user.Add(userID);
-
-                merchant = new JsonObjectCollection();
-                merchant.Name = "merchant";
-                merchant.Add(new JsonNumericValue("merchantID", -1));
-                merchant.Add(new JsonStringValue("merchantName", ""));
-
-                customer = new JsonObjectCollection();
-                customer.Name = "customer";
-                customer.Add(new JsonStringValue("custUsername", ""));
-                customer.Add(new JsonStringValue("custPWD", ""));
-
-
-                JsonObjectCollection transactionDate = new JsonObjectCollection();
-                transactionDate.Name = "transactionDate";
-                transactionDate.Add(new JsonNumericValue("year", -1));
-                transactionDate.Add(new JsonNumericValue("month", -1));
-                transactionDate.Add(new JsonNumericValue("day", -1));
-
-                JsonObjectCollection transactionTime = new JsonObjectCollection();
-                transactionTime.Name = "transactionTime";
-                transactionTime.Add(new JsonNumericValue("hour", -1));
-                transactionTime.Add(new JsonNumericValue("minute", -1));
-                transactionTime.Add(new JsonNumericValue("second", -1));
-
-                JsonObjectCollection merchantID = new JsonObjectCollection();
-                merchantID.Name = "merchantID";
-                merchantID.Add(new JsonStringValue("username", ""));
-
-                transactions = new JsonObjectCollection();
-                transactions.Name = "transactions";
-                transactions.Add(new JsonNumericValue("transactionID", -1));
-                transactions.Add(new JsonNumericValue("debitAmount", -1));
-                transactions.Add(new JsonNumericValue("creditAmount", -1));
-                transactions.Add(new JsonNumericValue("balance", -1));
-                transactions.Add(new JsonNumericValue("receiptNo", -1));
-                transactions.Add(transactionDate);
-                transactions.Add(transactionTime);
-                transactions.Add(merchantID);
         }
      
 
         public override void handleGETRequest (HttpProcessor p)
 		{
-            Console.WriteLine("request: {0}", p.http_url);
-            
-            //build response content from already defined JSON Objects
-            JsonObjectCollection defineResponse = new JsonObjectCollection();
-            defineResponse.Insert(0, headers);
-            defineResponse.Add(messageType);
-            defineResponse.Add(user);
-            defineResponse.Add(merchant);
-            defineResponse.Add(customer);
-            defineResponse.Add(transactions);
-
-            //finalize ougoing JSON message
-            JsonObjectCollection completeResponse = new JsonObjectCollection();
-            completeResponse.Add(defineResponse);
-
-            //Write message to client
-            byte[] message = JsonStringToByteArray(completeResponse.ToString()); 
-            p.sslStream.Write(message);
+            ServerApp.handleRequest(p, null, "GET");    
         }
 
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData) {
-            Console.WriteLine("POST request: {0}", p.http_url);
-            string data = inputData.ReadToEnd();
-
-            //build response content from already defined JSON Objects
-            JsonObjectCollection defineResponse = new JsonObjectCollection();
-            defineResponse.Insert(0, headers);
-            defineResponse.Add(messageType);
-            defineResponse.Add(user);
-            defineResponse.Add(merchant);
-            defineResponse.Add(customer);
-            defineResponse.Add(transactions);
-
-            //finalize ougoing JSON message
-            JsonObjectCollection completeResponse = new JsonObjectCollection();
-            completeResponse.Add(defineResponse);
-
-            //Write message to client
-            byte[] message = JsonStringToByteArray(completeResponse.ToString());
-            p.sslStream.Write(message);
-        }
-        public static byte[] JsonStringToByteArray(string jsonString)
-        {
-            var encoding = new UTF8Encoding();
-            return encoding.GetBytes(jsonString.Substring(1, jsonString.Length - 2));
+            ServerApp.handleRequest(p, inputData, "POST");
         }
     }
 

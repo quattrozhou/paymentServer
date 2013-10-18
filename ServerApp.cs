@@ -201,15 +201,17 @@ namespace PaymentServer
                 //parse the input data
                 string data = inputData.ReadToEnd();
                 JObject received = JObject.Parse(data);
-                int transactionCode = (int)received.SelectToken("code");
+                JObject msgType = (JObject)received.SelectToken("messageType");
+                int transactionCode = (int)msgType.SelectToken("code");
                 Console.WriteLine("Transaction code: {0}", transactionCode);
 
                 //Determine anad handle the received transaction code
                 switch (transactionCode)
                 {
                     case ((int)clientIncomingCodeEnum.IN_CODE_LOGIN_REQ):
-                        string uName = (string)received.SelectToken("custUsername");
-                        string PWD = (string)received.SelectToken("custPWD");
+                        JObject cust = (JObject)received.SelectToken("customer");
+                        string uName = (string)cust.SelectToken("custUsername");
+                        string PWD = (string)cust.SelectToken("custPWD");
                         Console.WriteLine("custUsename: {0}", uName);
                         Console.WriteLine("custPWD: {0}", PWD);
 
@@ -229,27 +231,17 @@ namespace PaymentServer
                         }
                         //build response content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
-                        defineResponse.Add(messageType);
-
-                        JObject resp = JObject.Parse(defineResponse.ToString());
-                        Console.WriteLine("resp: \n{0}", defineResponse.ToString());
-                        //
-                        string respCode = (string)resp.SelectToken("code");
-                        string respResponse = (string)resp.SelectToken("response");
-                        string respDetails = (string)resp.SelectToken("details");
-                        Console.WriteLine("code to mobile: {0}", respCode);
-                        Console.WriteLine("reponse to mobile: {0}", respResponse);
-                        Console.WriteLine("details to mobile: {0}", respDetails);
+                        defineResponse.Add(messageType);          
                         break;
-
                 }
-            }
+            }   
 
             //finalize ougoing JSON message
             JsonObjectCollection completeResponse = new JsonObjectCollection();
-            completeResponse.Add(defineResponse);
-
+            //completeResponse.Add(defineResponse);
+            completeResponse = (JsonObjectCollection)defineResponse;
             //Write message to client
+            Console.WriteLine("Response to Client: \n{0}", completeResponse.ToString());  
             byte[] message = JsonStringToByteArray(completeResponse.ToString());
             p.sslStream.Write(message);
         }

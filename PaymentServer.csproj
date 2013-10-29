@@ -113,7 +113,7 @@
     </Compile>
     <Compile Include="ServerApp.cs" />
     <Compile Include="ServerWorker.cs" />
-    <Compile Include="SimpleHttpServer.cs">
+    <Compile Include="HttpsServer.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

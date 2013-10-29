@@ -19,30 +19,58 @@ using PaymentServer;
 namespace PaymentServer
 {
 
-    public static class ServerApp
+    public class ServerApp
     {
+        /* Outgoing transaction message codes sent to mobile devices and web clients */
         public enum clientOutgoingCodeEnum
         {
-            /* Outgoing transaction message codes sent to mobile devices and web clients */
-
             OUT_CODE_INVALID = -1,
             OUT_CODE_LOGIN_SUCCESS = 0,
             OUT_CODE_LOGIN_FAILURE = 1,
-
+            OUT_CODE_SIGN_UP_SUCCESS = 2,
+            OUT_CODE_SIGN_UP_FAILURE = 3,
             //all new codes should be placed above this line
             OUT_CODE_MAX
         };
 
+        /* Incoming transaction message codes received from mobile devices and web clients */
         public enum clientIncomingCodeEnum
         {
-            /* Incoming transaction message codes received from mobile devices and web clients */
-
             IN_CODE_INVALID = -1,
             IN_CODE_LOGIN_REQ = 0,
-
+            IN_CODE_SIGN_UP_REQ = 1,
             //all new codes should be placed above this line
             IN_CODE_MAX
         };
+
+        public enum createProfleResultType
+        { 
+            ERROR_CREATE_PROFILE_UNKNOWN = -1,
+            RESULT_CREATE_PROFILE_SUCCESS = 0,
+            ERROR_CREATE_PROFILE_EXISTING_COMBINATION = 1,
+            ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
+            ERROR_CREATE_PROFILE_INVALID_BANK_ACCT_NUM = 3,
+            ERROR_CREATE_PROFILE_INVALID_BANK_CODE = 4,
+            //all new codes should be placed above this line
+            ERROR_CREATE_PROFILE_MAX
+        }
+
+        //define user profile data structure
+        public struct UserProfile{
+            public string userType;
+            public string username;  
+            public string password;             //base64-encoded
+            public string bankCode;             //base64-encoded
+            public string accountNum;           //base64-encoded
+            public string accountPWD;      //base64-encoded
+            public double acctBalance;          //base64-encoded
+            public string transactionHistory;
+            public int POSHWID;
+            public string currentDK;            //base64-encoded
+            public string nextDK;               //base64-encoded
+            public string authenticationString;  //base64-encoded
+        };
+
 
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
             JsonObjectCollection headers;
@@ -208,20 +236,24 @@ namespace PaymentServer
                 //Determine anad handle the received transaction code
                 switch (transactionCode)
                 {
+                    //handle user authentication request
                     case ((int)clientIncomingCodeEnum.IN_CODE_LOGIN_REQ):
                         JObject cust = (JObject)received.SelectToken("customer");
+                        string authString = "";
                         string uName = (string)cust.SelectToken("custUsername");
                         string PWD = (string)cust.SelectToken("custPWD");
+                        authString += uName;
+                        authString += PWD;
                         Console.WriteLine("custUsename: {0}", uName);
                         Console.WriteLine("custPWD: {0}", PWD);
 
-                        //JT: The authentication logic shoud come here. For now we will authenticate all requests
-                        if (true)  //JT:HACK - This should evaluate logic that checks if the user is authentiicated or not
+                        //Call the ServerWorker function
+                        if (ServerWorker.authenticateUser(authString))  //JT:HACK - This should evaluate logic that checks if the user is authentiicated or not
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Success"));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
                         }
                         else{
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
@@ -229,9 +261,36 @@ namespace PaymentServer
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
                         }
-                        //build response content from already defined JSON Objects               
+                        //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);          
+                        break;
+                     
+                    //handle new user sign-up request
+                    case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
+                        UserProfile newProfile = new UserProfile();
+                        JObject newUser = (JObject)received.SelectToken("user");
+                        newProfile.userType = (string)newUser.SelectToken("userType");
+                        newProfile.userType = (string)newUser.SelectToken("user");
+
+                        if (ServerWorker.createNewProfile(newProfile) == createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS)
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "User account created"));
+                        }
+                        else
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. username and password combination already exists"));
+                        }
+
+                        //build response message content from already defined JSON Objects               
+                        defineResponse.Insert(0, headers);
+                        defineResponse.Add(messageType); 
                         break;
                 }
             }   

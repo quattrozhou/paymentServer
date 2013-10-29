@@ -112,6 +112,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="ServerApp.cs" />
+    <Compile Include="ServerWorker.cs" />
     <Compile Include="SimpleHttpServer.cs">
       <SubType>Code</SubType>
     </Compile>

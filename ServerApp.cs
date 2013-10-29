@@ -238,8 +238,9 @@ namespace PaymentServer
 
             //finalize ougoing JSON message
             JsonObjectCollection completeResponse = new JsonObjectCollection();
-            //completeResponse.Add(defineResponse);
-            completeResponse = (JsonObjectCollection)defineResponse;
+            JsonObjectCollection packagedResponse = new JsonObjectCollection();
+            completeResponse.Add(defineResponse);
+           // completeResponse = (JsonObjectCollection)defineResponse;
             //Write message to client
             Console.WriteLine("Response to Client: \n{0}", completeResponse.ToString());  
             byte[] message = JsonStringToByteArray(completeResponse.ToString());

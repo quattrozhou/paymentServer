@@ -79,6 +79,61 @@ namespace PaymentServer
             }
         }
 
+        //Insert statement
+        public void Insert(string obj, string items, string values)
+        {
+            string query = "INSERT INTO "+obj+" "+items+" VALUES"+values; //(name, age) VALUES('John Smith', '33')";
+
+            //open connection
+            if (this.OpenConnection() == true)
+            {
+                //create command and assign the query and connection from the constructor
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+
+                //Execute command
+                cmd.ExecuteNonQuery();
+
+                //close connection
+                this.CloseConnection();
+            }
+        }
+
+        //Update statement
+        public void Update(string obj, string item1, string item2)
+        {
+            string query = "UPDATE "+obj+" SET "+item1+" WHERE "+item2; //name='Joe', age='22' WHERE name='John Smith'
+
+            //Open connection
+            if (this.OpenConnection() == true)
+            {
+                //create mysql command
+                MySqlCommand cmd = new MySqlCommand();
+                //Assign the query using CommandText
+                cmd.CommandText = query;
+                //Assign the connection using Connection
+                cmd.Connection = connection;
+
+                //Execute query
+                cmd.ExecuteNonQuery();
+
+                //close connection
+                this.CloseConnection();
+            }
+        }
+
+        //Delete statement
+        public void Delete(string obj, string items)
+        {
+            string query = "DELETE FROM "+obj+" WHERE "+items; //name='John Smith'";
+
+            if (this.OpenConnection() == true)
+            {
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                cmd.ExecuteNonQuery();
+                this.CloseConnection();
+            }
+        }
+
         //Backup
         public void Backup()
         {

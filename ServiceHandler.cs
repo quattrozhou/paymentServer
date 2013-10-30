@@ -91,6 +91,8 @@ namespace PaymentServer
 
 
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
+            MySQLDataHandler DBHandler = new MySQLDataHandler();
+
             JsonObjectCollection headers;
             JsonObjectCollection messageType;
             JsonObjectCollection user;
@@ -308,7 +310,7 @@ namespace PaymentServer
                         Console.WriteLine("custPWD: {0}", PWD);
 
                         //Call the ServerWorker function
-                        if (ServerWorker.authenticateUser(authString))  //JT:HACK - This should evaluate logic that checks if the user is authentiicated or not
+                        if (ServerWorker.authenticateUser(DBHandler, authString))  //JT:HACK - This should evaluate logic that checks if the user is authentiicated or not
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -364,7 +366,7 @@ namespace PaymentServer
                        
                         //pass the populated newProfile information to ServerWorker to try and create a new profile
                         //and build response message to client based on the return code receiveed from ServerWorker
-                        if (ServerWorker.createNewProfile(newProfile) == createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS)
+                        if (ServerWorker.createNewProfile(DBHandler, newProfile) == createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));

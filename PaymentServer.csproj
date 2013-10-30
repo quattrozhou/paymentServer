@@ -67,6 +67,10 @@
     <Reference Include="JSONSharp">
       <HintPath>..\..\..\..\..\Windows\System32\dotnet-1.1\dotnet2.0\bin\Release\JSONSharp.dll</HintPath>
     </Reference>
+    <Reference Include="MySql.Data, Version=6.7.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\Windows\System32\Json50r6\Bin\Net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -106,12 +110,13 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MySQLDataHandler.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="ServerApp.cs" />
+    <Compile Include="ServiceHandler.cs" />
     <Compile Include="ServerWorker.cs" />
     <Compile Include="HttpsServer.cs">
       <SubType>Code</SubType>

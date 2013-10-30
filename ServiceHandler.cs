@@ -19,7 +19,7 @@ using PaymentServer;
 namespace PaymentServer
 {
 
-    public class ServerApp
+    public class ServiceHandler
     {
         /* Outgoing transaction message codes sent to mobile devices and web clients */
         public enum clientOutgoingCodeEnum

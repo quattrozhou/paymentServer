@@ -312,11 +312,11 @@ namespace PaymentServer
 
         public override void handleGETRequest (HttpProcessor p)
 		{
-            ServerApp.handleRequest(p, null, "GET");    
+            ServiceHandler.handleRequest(p, null, "GET");    
         }
 
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData) {
-            ServerApp.handleRequest(p, inputData, "POST");
+            ServiceHandler.handleRequest(p, inputData, "POST");
         }
     }
 

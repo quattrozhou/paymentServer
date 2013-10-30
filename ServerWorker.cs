@@ -14,9 +14,9 @@ namespace PaymentServer
             return true;
         }
 
-        public static ServerApp.createProfleResultType createNewProfile(ServerApp.UserProfile newProfile)
+        public static ServiceHandler.createProfleResultType createNewProfile(ServiceHandler.UserProfile newProfile)
         {
-            return ServerApp.createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS;
+            return ServiceHandler.createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS;
         }
 
     }

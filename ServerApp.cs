@@ -47,10 +47,11 @@ namespace PaymentServer
         { 
             ERROR_CREATE_PROFILE_UNKNOWN = -1,
             RESULT_CREATE_PROFILE_SUCCESS = 0,
-            ERROR_CREATE_PROFILE_EXISTING_COMBINATION = 1,
+            ERROR_CREATE_PROFILE_USERNAME_TAKEN = 1,
             ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
             ERROR_CREATE_PROFILE_INVALID_BANK_ACCT_NUM = 3,
             ERROR_CREATE_PROFILE_INVALID_BANK_CODE = 4,
+            ERROR_CREATE_PROFILE_ACCOUNT_EXISTS = 5,
             //all new codes should be placed above this line
             ERROR_CREATE_PROFILE_MAX
         }
@@ -58,6 +59,23 @@ namespace PaymentServer
         //define user profile data structure
         public struct UserProfile{
             public string userType;
+            public string firstName;
+            public string middleName;
+            public string lastName;
+            public int DOBDay;
+            public int DOBMonth;
+            public int DOBYear;
+            public string occupation;
+            public int SIN;
+            public string address1;
+            public string address2;
+            public string city;
+            public string province;
+            public string country;
+            public string postalCode;
+            public string email;
+            public int phoneNumber;
+            public bool receiveCommunication;
             public string username;  
             public string password;             //base64-encoded
             public string bankCode;             //base64-encoded
@@ -131,6 +149,45 @@ namespace PaymentServer
             hardwareInfo.Add(currentDK);
             hardwareInfo.Add(nextDK);
 
+            JsonNumericValue DOBDay = new JsonNumericValue("DOBDay", -1);
+            JsonNumericValue DOBMonth = new JsonNumericValue("DOBMonth", -1);
+            JsonNumericValue DOBYear = new JsonNumericValue("DOBYear", -1);
+            JsonObjectCollection dateOfBirth = new JsonObjectCollection();
+            dateOfBirth.Name = "dateOfBirth";
+            dateOfBirth.Add(DOBDay);
+            dateOfBirth.Add(DOBMonth);
+            dateOfBirth.Add(DOBYear);
+           
+            JsonStringValue firstName = new JsonStringValue("firstName", "");
+            JsonStringValue middleName = new JsonStringValue("middleName", "");
+            JsonStringValue lastName = new JsonStringValue("lastName", "");
+            JsonStringValue occupation = new JsonStringValue("occupation", "");
+            JsonNumericValue SIN = new JsonNumericValue("SIN", -1);
+            JsonStringValue address1 = new JsonStringValue("address1", "");
+            JsonStringValue address2 = new JsonStringValue("address2", "");
+            JsonStringValue city = new JsonStringValue("city", "");
+            JsonStringValue province = new JsonStringValue("province", "");
+            JsonStringValue country = new JsonStringValue("country", "");
+            JsonStringValue postalCode = new JsonStringValue("postalCode", "");
+            JsonStringValue email = new JsonStringValue("email", "");
+            JsonNumericValue phoneNumber = new JsonNumericValue("phoneNumber", -1);
+            JsonObjectCollection personalInfo = new JsonObjectCollection();
+            personalInfo.Name = "personalInfo";
+            personalInfo.Add(firstName);
+            personalInfo.Add(lastName);
+            personalInfo.Add(email);
+            personalInfo.Add(dateOfBirth);
+            personalInfo.Add(occupation);
+            personalInfo.Add(SIN);
+            personalInfo.Add(address1);
+            personalInfo.Add(address2);
+            personalInfo.Add(city);
+            personalInfo.Add(province);
+            personalInfo.Add(country);
+            personalInfo.Add(postalCode);
+            personalInfo.Add(phoneNumber);
+            
+
             JsonStringValue username = new JsonStringValue("username", "");
             JsonStringValue password = new JsonStringValue("password", "");
             JsonObjectCollection userID = new JsonObjectCollection();
@@ -138,15 +195,18 @@ namespace PaymentServer
             userID.Add(username);
             userID.Add(password);
 
+            JsonBooleanValue receiveCommunication = new JsonBooleanValue("receiveCommunication", false);
             JsonStringValue userType = new JsonStringValue("userType", "");
             JsonStringValue transactionHistory = new JsonStringValue("transactionHistory", "");
             user = new JsonObjectCollection();
             user.Name = "user";
             user.Add(userType);
             user.Add(transactionHistory);
+            user.Add(receiveCommunication);
             user.Add(account);
             user.Add(hardwareInfo);
             user.Add(userID);
+            user.Add(personalInfo);
 
             JsonNumericValue merchantID = new JsonNumericValue("merchantID", -1);
             JsonStringValue merchantName = new JsonStringValue("merchantName", "");
@@ -269,10 +329,41 @@ namespace PaymentServer
                     //handle new user sign-up request
                     case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
                         UserProfile newProfile = new UserProfile();
-                        JObject newUser = (JObject)received.SelectToken("user");
-                        newProfile.userType = (string)newUser.SelectToken("userType");
-                        newProfile.userType = (string)newUser.SelectToken("user");
 
+                        //Populate the newProfile object with the information received from the client 
+                        JObject newUser = (JObject)received.SelectToken("user");
+                        JObject acct = (JObject)newUser.SelectToken("account");
+                        JObject UID = (JObject)newUser.SelectToken("userID");
+                        JObject DOB = (JObject)newUser.SelectToken("dateOfBirth");                        
+                        newProfile.userType = (string)newUser.SelectToken("userType");
+                        newProfile.receiveCommunication = (bool)newUser.SelectToken("receiveCommunication");
+                        newProfile.bankCode = (string)acct.SelectToken("bankCode");
+                        newProfile.accountNum = (string)acct.SelectToken("accountNum");
+                        newProfile.accountPWD = (string)acct.SelectToken("accountPWD");
+                        newProfile.acctBalance = (double)acct.SelectToken("acctBalance");
+                        newProfile.username = (string)UID.SelectToken("username");
+                        newProfile.password = (string)UID.SelectToken("password");
+                        newProfile.firstName = (string)UID.SelectToken("firstName");
+                        newProfile.lastName = (string)UID.SelectToken("lastName");
+                        newProfile.DOBDay = (int)DOB.SelectToken("DOBDay");
+                        newProfile.DOBMonth = (int)DOB.SelectToken("DOBMonth");
+                        newProfile.DOBYear = (int)DOB.SelectToken("DOBYear");
+                        newProfile.occupation = (string)UID.SelectToken("occupation");
+                        newProfile.SIN = (int)UID.SelectToken("SIN");
+                        newProfile.address1 = (string)UID.SelectToken("address1");
+                        newProfile.address2 = (string)UID.SelectToken("address2");
+                        newProfile.city = (string)UID.SelectToken("city");
+                        newProfile.province = (string)UID.SelectToken("province");
+                        newProfile.country = (string)UID.SelectToken("country");
+                        newProfile.postalCode = (string)UID.SelectToken("postalCode");
+                        newProfile.email = (string)UID.SelectToken("email");
+                        newProfile.phoneNumber = (int)UID.SelectToken("phoneNumber");  
+                        newProfile.authenticationString = "";
+                        newProfile.authenticationString += newProfile.username;
+                        newProfile.authenticationString += newProfile.password; 
+                       
+                        //pass the populated newProfile information to ServerWorker to try and create a new profile
+                        //and build response message to client based on the return code receiveed from ServerWorker
                         if (ServerWorker.createNewProfile(newProfile) == createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));

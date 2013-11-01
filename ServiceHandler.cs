@@ -150,6 +150,7 @@ namespace PaymentServer
             JsonObjectCollection personalInfo = new JsonObjectCollection();
             personalInfo.Name = "personalInfo";
             personalInfo.Add(firstName);
+            personalInfo.Add(middleName);
             personalInfo.Add(lastName);
             personalInfo.Add(email);
             personalInfo.Add(dateOfBirth);
@@ -372,9 +373,69 @@ namespace PaymentServer
                     * handle get user profile request
                     */
                     case ((int)clientIncomingCodeEnum.IN_CODE_GET_USER_PROFILE):
+                        //Retrieve encapsulated JSON objects from message
+                        JObject requester = (JObject)received.SelectToken("user");
+                        int userNum = (int)requester.SelectToken("userNo");
 
+                        GetProfileResultType UserProf = ServerWorker.getUserProfile(DBHandler, userNum);
+                        if (UserProf.status == ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
+                        {
+                            //populate messageType fields 
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_SUCCESS));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
 
+                            //populate User fields
+                            user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
+                            user = insert(user, userType, new JsonStringValue("userType", (string)UserProf.profile.userType));
+                            user = insert(user, transactionHistory, new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
+                            user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", (bool)UserProf.profile.receiveCommunication));
+                            
+                            account = insert(account, bankCode, new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
+                            account = insert(account, accountNum, new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
+                            account = insert(account, accountPWD, new JsonStringValue("accountPWD", (string)UserProf.profile.accountPWD));
+                            account = insert(account, acctBalance, new JsonNumericValue("acctBalance", (int)UserProf.profile.acctBalance));
+                            user = insert(user, account, account);
+                            
+                            hardwareInfo = insert(hardwareInfo, POSHWID, new JsonNumericValue("POSHWID", (int)UserProf.profile.POSHWID));
+                            hardwareInfo = insert(hardwareInfo, currentDK, new JsonStringValue("currentDK", (string)UserProf.profile.currentDK));
+                            hardwareInfo = insert(hardwareInfo, nextDK, new JsonStringValue("nextDK", (string)UserProf.profile.nextDK));
+                            user = insert(user, hardwareInfo, hardwareInfo);
 
+                            userID = insert(userID, username, new JsonStringValue("username", (string)UserProf.profile.username));
+                            userID = insert(userID, password, new JsonStringValue("password", (string)UserProf.profile.password));
+                            user = insert(user, userID, userID);
+
+                            personalInfo = insert(personalInfo, firstName, new JsonStringValue("firstName", (string)UserProf.profile.firstName));
+                            personalInfo = insert(personalInfo, lastName, new JsonStringValue("lastName", (string)UserProf.profile.lastName));
+                            personalInfo = insert(personalInfo, middleName, new JsonStringValue("middleName", (string)UserProf.profile.middleName));
+                            personalInfo = insert(personalInfo, email, new JsonStringValue("email", (string)UserProf.profile.email));
+                            personalInfo = insert(personalInfo, occupation, new JsonStringValue("occupation", (string)UserProf.profile.occupation));
+                            personalInfo = insert(personalInfo, SIN, new JsonNumericValue("SIN", (int)UserProf.profile.SIN));
+                            personalInfo = insert(personalInfo, address1, new JsonStringValue("address1", (string)UserProf.profile.address1));
+                            personalInfo = insert(personalInfo, address2, new JsonStringValue("address2", (string)UserProf.profile.address2));
+                            personalInfo = insert(personalInfo, city, new JsonStringValue("email", (string)UserProf.profile.city));
+                            personalInfo = insert(personalInfo, province, new JsonStringValue("province", (string)UserProf.profile.province));
+                            personalInfo = insert(personalInfo, country, new JsonStringValue("country", (string)UserProf.profile.country));
+                            personalInfo = insert(personalInfo, postalCode, new JsonStringValue("postalCode", (string)UserProf.profile.postalCode));
+                            personalInfo = insert(personalInfo, phoneNumber, new JsonNumericValue("phoneNumber", (int)UserProf.profile.phoneNumber));
+                            dateOfBirth = insert(dateOfBirth, DOBDay, new JsonNumericValue("DOBDay", (int)UserProf.profile.DOBDay));
+                            dateOfBirth = insert(dateOfBirth, DOBMonth, new JsonNumericValue("DOBMonthr", (int)UserProf.profile.DOBMonth));
+                            dateOfBirth = insert(dateOfBirth, DOBYear, new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));                          
+                            personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
+                            user = insert(user, personalInfo, personalInfo);
+                        }
+                        else 
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
+                        }
+                        //build response message content from already defined JSON Objects               
+                        defineResponse.Insert(0, headers);
+                        defineResponse.Add(messageType);
+                        defineResponse.Add(user); 
                         break;
                 }
             }   
@@ -383,7 +444,7 @@ namespace PaymentServer
             JsonObjectCollection completeResponse = new JsonObjectCollection();
             JsonObjectCollection packagedResponse = new JsonObjectCollection();
             completeResponse.Add(defineResponse);
-           // completeResponse = (JsonObjectCollection)defineResponse;
+
             //Write message to client
             Console.WriteLine("Response to Client: \n{0}", completeResponse.ToString());  
             byte[] message = JsonStringToByteArray(completeResponse.ToString());

@@ -16,79 +16,53 @@ using System.Linq;
 using System.Threading.Tasks;
 using PaymentServer;
 
+public enum ResultCodeType
+{
+    ERROR_UNKNOWN = -1,
+    RESULT_CREATE_PROFILE_SUCCESS = 0,
+    ERROR_CREATE_PROFILE_USERNAME_TAKEN = 1,
+    ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
+    ERROR_CREATE_PROFILE_INVALID_BANK_ACCT_NUM = 3,
+    ERROR_CREATE_PROFILE_INVALID_BANK_CODE = 4,
+    ERROR_CREATE_PROFILE_ACCOUNT_EXISTS = 5,
+    UPDATE_USER_PROFILE_SUCCESS = 6,
+    ERROR_UPDATE_USER_PROFILE = 7,
+    //all new codes should be placed above this line
+    ERROR_CREATE_PROFILE_MAX
+};
+
+/* Outgoing transaction message codes sent to mobile devices and web clients */
+public enum clientOutgoingCodeEnum
+{
+    OUT_CODE_INVALID = -1,
+    OUT_CODE_LOGIN_SUCCESS = 0,
+    OUT_CODE_LOGIN_FAILURE = 1,
+    OUT_CODE_SIGN_UP_SUCCESS = 2,
+    OUT_CODE_SIGN_UP_FAILURE = 3,
+    OUT_CODE_SEND_USER_PROFILE_SUCCESS = 4,
+    OUT_CODE_SEND_USER_PROFILE_FAILURE = 5,
+    //all new codes should be placed above this line
+    OUT_CODE_MAX
+};
+
+/* Incoming transaction message codes received from mobile devices and web clients */
+public enum clientIncomingCodeEnum
+{
+    IN_CODE_INVALID = -1,
+    IN_CODE_LOGIN_REQ = 0,
+    IN_CODE_SIGN_UP_REQ = 1,
+    IN_CODE_GET_USER_PROFILE = 2,
+    //all new codes should be placed above this line
+    IN_CODE_MAX
+};
+
+
 namespace PaymentServer
 {
 
     public class ServiceHandler
     {
-        /* Outgoing transaction message codes sent to mobile devices and web clients */
-        public enum clientOutgoingCodeEnum
-        {
-            OUT_CODE_INVALID = -1,
-            OUT_CODE_LOGIN_SUCCESS = 0,
-            OUT_CODE_LOGIN_FAILURE = 1,
-            OUT_CODE_SIGN_UP_SUCCESS = 2,
-            OUT_CODE_SIGN_UP_FAILURE = 3,
-            //all new codes should be placed above this line
-            OUT_CODE_MAX
-        };
-
-        /* Incoming transaction message codes received from mobile devices and web clients */
-        public enum clientIncomingCodeEnum
-        {
-            IN_CODE_INVALID = -1,
-            IN_CODE_LOGIN_REQ = 0,
-            IN_CODE_SIGN_UP_REQ = 1,
-            //all new codes should be placed above this line
-            IN_CODE_MAX
-        };
-
-        public enum createProfleResultType
-        { 
-            ERROR_CREATE_PROFILE_UNKNOWN = -1,
-            RESULT_CREATE_PROFILE_SUCCESS = 0,
-            ERROR_CREATE_PROFILE_USERNAME_TAKEN = 1,
-            ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
-            ERROR_CREATE_PROFILE_INVALID_BANK_ACCT_NUM = 3,
-            ERROR_CREATE_PROFILE_INVALID_BANK_CODE = 4,
-            ERROR_CREATE_PROFILE_ACCOUNT_EXISTS = 5,
-            //all new codes should be placed above this line
-            ERROR_CREATE_PROFILE_MAX
-        }
-
-        //define user profile data structure
-        public struct UserProfile{
-            public string userType;
-            public string firstName;
-            public string middleName;
-            public string lastName;
-            public int DOBDay;
-            public int DOBMonth;
-            public int DOBYear;
-            public string occupation;
-            public int SIN;
-            public string address1;
-            public string address2;
-            public string city;
-            public string province;
-            public string country;
-            public string postalCode;
-            public string email;
-            public int phoneNumber;
-            public bool receiveCommunication;
-            public string username;  
-            public string password;             //base64-encoded
-            public string bankCode;             //base64-encoded
-            public string accountNum;           //base64-encoded
-            public string accountPWD;      //base64-encoded
-            public double acctBalance;          //base64-encoded
-            public string transactionHistory;
-            public int POSHWID;
-            public string currentDK;            //base64-encoded
-            public string nextDK;               //base64-encoded
-            public string authenticationString;  //base64-encoded
-        };
-
+        
 
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
             MySQLDataHandler DBHandler = new MySQLDataHandler();
@@ -199,9 +173,11 @@ namespace PaymentServer
 
             JsonBooleanValue receiveCommunication = new JsonBooleanValue("receiveCommunication", false);
             JsonStringValue userType = new JsonStringValue("userType", "");
+            JsonNumericValue userNo = new JsonNumericValue("userNo", -1);
             JsonStringValue transactionHistory = new JsonStringValue("transactionHistory", "");
             user = new JsonObjectCollection();
             user.Name = "user";
+            user.Add(userNo);
             user.Add(userType);
             user.Add(transactionHistory);
             user.Add(receiveCommunication);
@@ -298,7 +274,9 @@ namespace PaymentServer
                 //Determine anad handle the received transaction code
                 switch (transactionCode)
                 {
-                    //handle user authentication request
+                    /*
+                     * handle user authentication request
+                     */
                     case ((int)clientIncomingCodeEnum.IN_CODE_LOGIN_REQ):
                         JObject cust = (JObject)received.SelectToken("customer");
                         string authString = "";
@@ -310,7 +288,7 @@ namespace PaymentServer
                         Console.WriteLine("custPWD: {0}", PWD);
 
                         //Call the ServerWorker function
-                        if (ServerWorker.authenticateUser(DBHandler, authString))  //JT:HACK - This should evaluate logic that checks if the user is authentiicated or not
+                        if (ServerWorker.authenticateUser(DBHandler, authString))  
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -328,15 +306,19 @@ namespace PaymentServer
                         defineResponse.Add(messageType);          
                         break;
                      
-                    //handle new user sign-up request
+                    /*
+                     * handle new user sign-up request
+                     */
                     case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
                         UserProfile newProfile = new UserProfile();
 
-                        //Populate the newProfile object with the information received from the client 
+                        //Retrieve encapsulated JSON objects from message
                         JObject newUser = (JObject)received.SelectToken("user");
                         JObject acct = (JObject)newUser.SelectToken("account");
                         JObject UID = (JObject)newUser.SelectToken("userID");
-                        JObject DOB = (JObject)newUser.SelectToken("dateOfBirth");                        
+                        JObject DOB = (JObject)newUser.SelectToken("dateOfBirth");
+
+                        //Populate the newProfile object with the information received from the client
                         newProfile.userType = (string)newUser.SelectToken("userType");
                         newProfile.receiveCommunication = (bool)newUser.SelectToken("receiveCommunication");
                         newProfile.bankCode = (string)acct.SelectToken("bankCode");
@@ -366,7 +348,7 @@ namespace PaymentServer
                        
                         //pass the populated newProfile information to ServerWorker to try and create a new profile
                         //and build response message to client based on the return code receiveed from ServerWorker
-                        if (ServerWorker.createNewProfile(DBHandler, newProfile) == createProfleResultType.RESULT_CREATE_PROFILE_SUCCESS)
+                        if (ServerWorker.createNewProfile(DBHandler, newProfile) == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -378,17 +360,26 @@ namespace PaymentServer
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. username and password combination already exists"));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. The email provided is already registered"));
                         }
 
                         //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType); 
                         break;
+
+                    /*
+                    * handle get user profile request
+                    */
+                    case ((int)clientIncomingCodeEnum.IN_CODE_GET_USER_PROFILE):
+
+
+
+                        break;
                 }
             }   
 
-            //finalize ougoing JSON message
+            //finalize outgoing JSON message
             JsonObjectCollection completeResponse = new JsonObjectCollection();
             JsonObjectCollection packagedResponse = new JsonObjectCollection();
             completeResponse.Add(defineResponse);

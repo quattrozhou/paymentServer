@@ -7,6 +7,83 @@ using System.Diagnostics;
 using System.IO;
 using MySql.Data.MySqlClient;
 
+//define user profile data structure
+//THIS ENUMERATION MUST ALIGN WITH THE CURRENT DATABASE MODEL
+//DO NOT ADD OR MODIFY THIS ENUM UNLESS THE DATABASE MODEL HAS BEEN MODIFIED ACCORDINGLY
+//DOING SO WILL YIELD CATASTROPHIC RESULTS 
+public enum UserProfileEnum
+{
+    userNo = 0,
+    email = 1,
+    username = 2,
+    password = 3,
+    userType = 4,
+    firstName = 5,
+    middleName = 6,
+    lastName = 7,
+    DOBDay = 8,
+    DOBMonth = 9,
+    DOBYear = 10,
+    occupation = 11,
+    SIN = 12,
+    address1 = 13,
+    address2 = 14,
+    city = 15,
+    province = 16,
+    country = 17,
+    postalCode = 18,
+    phoneNumber = 19,
+    receiveCommunication = 20,
+    bankCode = 21,             //base64-encoded
+    accountNum = 22,          //base64-encoded
+    accountPWD = 23,      //base64-encoded
+    acctBalance = 24,          //base64-encoded
+    transactionHistory = 25,
+    POSHWID = 26,
+    currentDK = 27,            //base64-encoded
+    nextD = 28,              //base64-encoded
+    authenticationString = 29,  //base64-encoded
+    createTime = 30,
+    //All additions sould come above this line
+    NUM_PROFILE_DATA_ITEMS
+}
+
+//define user profile data structure
+public struct UserProfile
+{
+    public int userNo;
+    public string email;
+    public string username;
+    public string password;             //base64-encoded
+    public string userType;
+    public string firstName;
+    public string middleName;
+    public string lastName;
+    public int DOBDay;
+    public int DOBMonth;
+    public int DOBYear;
+    public string occupation;
+    public int SIN;
+    public string address1;
+    public string address2;
+    public string city;
+    public string province;
+    public string country;
+    public string postalCode;
+    public int phoneNumber;
+    public bool receiveCommunication;
+    public string bankCode;             //base64-encoded
+    public string accountNum;           //base64-encoded
+    public string accountPWD;      //base64-encoded
+    public double acctBalance;          //base64-encoded
+    public string transactionHistory;
+    public int POSHWID;
+    public string currentDK;            //base64-encoded
+    public string nextDK;               //base64-encoded
+    public string authenticationString;  //base64-encoded
+    public string createTime;
+};
+
 
 namespace PaymentServer
 {
@@ -43,6 +120,7 @@ namespace PaymentServer
             try
             {
                 connection.Open();
+                Console.WriteLine("Connected to database server.");
                 return true;
             }
             catch (MySqlException ex)
@@ -58,6 +136,9 @@ namespace PaymentServer
 
                     case 1045:
                         Console.WriteLine("Could not access database. Invalid username/password");
+                        break;
+                    default:
+                        Console.WriteLine("Cannot connect to database server. Unknown exception");
                         break;
                 }
                 return false;
@@ -79,10 +160,35 @@ namespace PaymentServer
             }
         }
 
-        //Insert statement
-        public void Insert(string obj, string items, string values)
+        public int Count(string criteria1, string criteria2 )
         {
-            string query = "INSERT INTO "+obj+" "+items+" VALUES"+values; //(name, age) VALUES('John Smith', '33')";
+            string query = "SELECT Count(" + criteria1 + ") FROM " + criteria2;
+            int Count = -1;
+
+            //Open Connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Mysql Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+
+                //ExecuteScalar will return one value
+                Count = int.Parse(cmd.ExecuteScalar() + "");
+
+                //close Connection
+                this.CloseConnection();
+
+                return Count;
+            }
+            else
+            {
+                return Count;
+            }
+        }
+
+        //Insert statement
+        public void Insert(string table, string columns, string values)
+        {
+            string query = "INSERT INTO "+table+" "+columns+" VALUES "+values; //(name, age) VALUES('John Smith', '33')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -99,9 +205,9 @@ namespace PaymentServer
         }
 
         //Update statement
-        public void Update(string obj, string item1, string item2)
+        public void Update(string table, string items, string column)
         {
-            string query = "UPDATE "+obj+" SET "+item1+" WHERE "+item2; //name='Joe', age='22' WHERE name='John Smith'
+            string query = "UPDATE "+table+" SET "+items+" WHERE "+column; //name='Joe', age='22' WHERE name='John Smith'
 
             //Open connection
             if (this.OpenConnection() == true)
@@ -122,15 +228,80 @@ namespace PaymentServer
         }
 
         //Delete statement
-        public void Delete(string obj, string items)
+        public void Delete(string table, string column , string value)
         {
-            string query = "DELETE FROM "+obj+" WHERE "+items; //name='John Smith'";
+            string query = "DELETE FROM " + table + " WHERE " + column + "='" + value + "'"; //name='John Smith'";
 
             if (this.OpenConnection() == true)
             {
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 cmd.ExecuteNonQuery();
                 this.CloseConnection();
+            }
+        }
+
+        //Find statement
+        public bool Find(string table, string column, string value)
+        {
+            bool itemFound = false;
+            string query = "SELECT * FROM "+table+" WHERE "+column+"='"+value+"'";
+            if(this.OpenConnection()==true)
+            {
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                if (cmd.ExecuteNonQuery() == 1)
+                {
+                    itemFound = true;
+                }
+                this.CloseConnection();
+            }
+            return itemFound;
+        }
+
+        //Select statement
+        public List<string>[] Select(string table, string column, string value)
+        {
+            string query = "SELECT * FROM " +table+ " WHERE " +column+ "='" + value + "'"; 
+
+            //Create a list to store the result
+            int numRecords = Count("*", table);
+            List<string>[] list = new List<string>[numRecords];
+            for (int i = 0; i > numRecords; i++)
+            {
+                list[i] = new List<string>();
+            }
+
+            //Open connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                int numReads = 0;
+                while (dataReader.Read())
+                {
+                    list[numReads].Add(dataReader[numReads] + "");
+                    numReads++;
+                }
+                if (numReads != numRecords)
+                {
+                    Console.WriteLine("MySQLDataHandler::Select - Warning! {0} columns expected, but only {1} were read", numRecords, numReads);
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+
+                //return list to be displayed
+                return list;
+            }
+            else
+            {
+                return list;
             }
         }
 

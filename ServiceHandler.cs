@@ -309,7 +309,7 @@ namespace PaymentServer
                      
                     /*
                      * handle new user sign-up request
-                     */
+                     */ 
                     case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
                         UserProfile newProfile = new UserProfile();
 

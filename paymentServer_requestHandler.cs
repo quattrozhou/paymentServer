@@ -444,6 +444,36 @@ namespace PaymentServer
                         break;
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
+                        JObject cust = (JObject)received.SelectToken("customer");
+                        string authString = "";
+                        string uName = (string)cust.SelectToken("custUsername");
+                        string PWD = (string)cust.SelectToken("custPWD");
+                        authString += uName;
+                        authString += PWD;
+                        Console.WriteLine("custUsename: {0}", uName);
+                        Console.WriteLine("custPWD: {0}", PWD);
+
+                        // authenticate user
+                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
+                        }
+                        else{
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+                        }
+
+                        // contact bank
+
+                        //build response message content from already defined JSON Objects               
+                        defineResponse.Insert(0, headers);
+                        defineResponse.Add(messageType);          
+
                         break;
                 }
             }   

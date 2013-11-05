@@ -12,7 +12,7 @@ public struct GetProfileResultType
     public ResultCodeType status;
 };
 
-//  this is test_chang
+//  this is test_chang, welcome
 namespace PaymentServer
 {
     class paymentServer_requestWorker

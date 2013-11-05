@@ -13,8 +13,6 @@ using Newtonsoft.Json;
 using System.Security.Cryptography.X509Certificates;
 using PaymentServer;
 
-// new changes
-
 namespace PaymentServer
 {
 

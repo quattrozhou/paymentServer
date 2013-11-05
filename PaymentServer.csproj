@@ -67,10 +67,7 @@
     <Reference Include="JSONSharp">
       <HintPath>..\..\..\..\..\Windows\System32\dotnet-1.1\dotnet2.0\bin\Release\JSONSharp.dll</HintPath>
     </Reference>
-    <Reference Include="MySql.Data, Version=6.7.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Release\MySql.Data.dll</HintPath>
-    </Reference>
+    <Reference Include="MySql.Data, Version=6.1.6.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\Windows\System32\Json50r6\Bin\Net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -111,12 +108,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="paymentServer_dataBase.cs" />
+    <Compile Include="paymentServer_requestHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="paymentServer_requestHandler.cs" />
     <Compile Include="paymentServer_requestWorker.cs" />
     <Compile Include="paymentServer_connection.cs">
       <SubType>Code</SubType>

@@ -52,6 +52,7 @@ public enum clientIncomingCodeEnum
     IN_CODE_LOGIN_REQ = 0,
     IN_CODE_SIGN_UP_REQ = 1,
     IN_CODE_GET_USER_PROFILE = 2,
+    IN_CODE_PROCESS_PAYMENT_REQ = 3,
     //all new codes should be placed above this line
     IN_CODE_MAX
 };
@@ -440,6 +441,9 @@ namespace PaymentServer
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
                         defineResponse.Add(user); 
+                        break;
+
+                    case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
                         break;
                 }
             }   

@@ -134,5 +134,11 @@ namespace PaymentServer
 
         }
 
+        public static ResultCodeType processPaymentRequest(paymentServer_dataBase DBHandler, transaction transDetails)
+        {
+            ResultCodeType result = new ResultCodeType();
+            return result;
+        }
+
     }
 }

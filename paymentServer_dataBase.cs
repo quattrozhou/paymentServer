@@ -84,6 +84,9 @@ public struct UserProfile
     public string createTime;
 };
 
+public struct transaction{
+
+};
 
 namespace PaymentServer
 {

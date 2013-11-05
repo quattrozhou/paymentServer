@@ -15,12 +15,12 @@ public struct GetProfileResultType
 
 namespace PaymentServer
 {
-    class ServerWorker
+    class paymentServer_requestWorker
     {
          /*
          * Authenticate user
          */
-        public static Boolean authenticateUser(MySQLDataHandler DBHandler, string authenticationString)
+        public static Boolean authenticateUser(paymentServer_dataBase DBHandler, string authenticationString)
         {
             
             int count = DBHandler.Count("*", "authenticationList WHERE authenticationString='"+authenticationString+"'");
@@ -46,9 +46,9 @@ namespace PaymentServer
         /*
          * create new user profile
          */
-        public static ResultCodeType createNewProfile(MySQLDataHandler DBHandler, UserProfile P)
+        public static ResultCodeType createNewProfile(paymentServer_dataBase DBHandler, UserProfile P)
         {
-            if (DBHandler.Count("*", "authenticationList WHERE email='"+P.email+"'") == 0)
+            if (DBHandler.Count("*", "userProfile WHERE email='" + P.email + "'") == 0)
             {
                 string profile = "userProfile";
                 string items = "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
@@ -76,7 +76,7 @@ namespace PaymentServer
          /*
          * Get user profile
          */
-        public static GetProfileResultType getUserProfile(MySQLDataHandler DBHandler, int userNo)
+        public static GetProfileResultType getUserProfile(paymentServer_dataBase DBHandler, int userNo)
         {         
             GetProfileResultType reply = new GetProfileResultType();
             reply.status = ResultCodeType.ERROR_UNKNOWN;

@@ -71,7 +71,7 @@ public struct UserProfile
     public string country;
     public string postalCode;
     public int phoneNumber;
-    public bool receiveCommunication;
+    public int receiveCommunication;
     public string bankCode;             //base64-encoded
     public string accountNum;           //base64-encoded
     public string accountPWD;      //base64-encoded
@@ -87,7 +87,7 @@ public struct UserProfile
 
 namespace PaymentServer
 {
-    class MySQLDataHandler
+    class paymentServer_dataBase
     {
         private MySqlConnection connection;
         private string server;
@@ -96,7 +96,7 @@ namespace PaymentServer
         private string password;
 
         //Constructor
-        public MySQLDataHandler()
+        public paymentServer_dataBase()
         {
             Initialize();
         }

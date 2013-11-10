@@ -290,7 +290,7 @@ namespace PaymentServer
                         Console.WriteLine("custPWD: {0}", PWD);
 
                         //Call the ServerWorker function
-                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))  
+                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -444,17 +444,29 @@ namespace PaymentServer
                         break;
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
-                        JObject cust = (JObject)received.SelectToken("customer");
-                        string authString = "";
-                        string uName = (string)cust.SelectToken("custUsername");
-                        string PWD = (string)cust.SelectToken("custPWD");
-                        authString += uName;
-                        authString += PWD;
-                        Console.WriteLine("custUsename: {0}", uName);
-                        Console.WriteLine("custPWD: {0}", PWD);
+                        JObject customerJsonObj = (JObject)received.SelectToken("customer");
+                        string authStringT = "";
+                        string uNameT = (string)customerJsonObj.SelectToken("custUsername");
+                        string PWDT = (string)customerJsonObj.SelectToken("custPWD");
+                        authStringT += uNameT;
+                        authStringT += PWDT;
+                        Console.WriteLine("custUsename: {0}", uNameT);
+                        Console.WriteLine("custPWD: {0}", PWDT);
+
+                        JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
+                        int ttransactionID = (int)transactionJsonObj.SelectToken("transactionID");
+                        int tdebitAmount = (int)transactionJsonObj.SelectToken("debitAmount");
+                        int tcreditAmount = (int)transactionJsonObj.SelectToken("creditAmount");
+                        int tbalance = (int)transactionJsonObj.SelectToken("balance");
+                        int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
+                        
+                        JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
+                        JObject ttransactionTime = (JObject)transactionJsonObj.SelectToken("transactionTime");
+                        
+                        
 
                         // authenticate user
-                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))
+                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authStringT))
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));

@@ -107,6 +107,7 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="paymentServer_connectBank.cs" />
     <Compile Include="paymentServer_dataBase.cs" />
     <Compile Include="paymentServer_requestHandler.cs">
       <SubType>Code</SubType>

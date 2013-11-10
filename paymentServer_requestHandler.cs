@@ -482,7 +482,8 @@ namespace PaymentServer
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
                         }
-                        else{
+                        else
+                        {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));

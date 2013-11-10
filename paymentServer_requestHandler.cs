@@ -444,6 +444,7 @@ namespace PaymentServer
                         break;
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
+                        // customer ID and password, prepare for authentication
                         JObject customerJsonObj = (JObject)received.SelectToken("customer");
                         string authStringT = "";
                         string uNameT = (string)customerJsonObj.SelectToken("custUsername");
@@ -453,6 +454,7 @@ namespace PaymentServer
                         Console.WriteLine("custUsename: {0}", uNameT);
                         Console.WriteLine("custPWD: {0}", PWDT);
 
+                        // obtain transaction object and extract information
                         JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
                         int ttransactionID = (int)transactionJsonObj.SelectToken("transactionID");
                         int tdebitAmount = (int)transactionJsonObj.SelectToken("debitAmount");
@@ -460,10 +462,17 @@ namespace PaymentServer
                         int tbalance = (int)transactionJsonObj.SelectToken("balance");
                         int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
                         
+                        // obtain transaction date and time
                         JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
+                        int tyear = (int)ttransactionDate.SelectToken("year");
+                        int tmonth = (int)ttransactionDate.SelectToken("month");
+                        int tday = (int)ttransactionDate.SelectToken("day");
                         JObject ttransactionTime = (JObject)transactionJsonObj.SelectToken("transactionTime");
-                        
-                        
+                        int thour = (int)ttransactionTime.SelectToken("hour");
+                        int tminute = (int)ttransactionTime.SelectToken("minute");
+                        int tsecond = (int)ttransactionTime.SelectToken("second");
+
+
 
                         // authenticate user
                         if (paymentServer_requestWorker.authenticateUser(DBHandler, authStringT))

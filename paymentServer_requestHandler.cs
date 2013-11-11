@@ -41,6 +41,10 @@ public enum clientOutgoingCodeEnum
     OUT_CODE_SIGN_UP_FAILURE = 3,
     OUT_CODE_SEND_USER_PROFILE_SUCCESS = 4,
     OUT_CODE_SEND_USER_PROFILE_FAILURE = 5,
+    OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS = 6,
+    OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE = 7,
+    OUT_CODE_TRANSACTION_MERCHANT_AUTH_SUCCESS = 8,
+    OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE = 9,
     //all new codes should be placed above this line
     OUT_CODE_MAX
 };
@@ -444,15 +448,17 @@ namespace PaymentServer
                         break;
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
-                        // customer ID and password, prepare for authentication
+                        // customer ID and password, prepare for curstomer authentication
                         JObject customerJsonObj = (JObject)received.SelectToken("customer");
-                        string authStringT = "";
-                        string uNameT = (string)customerJsonObj.SelectToken("custUsername");
-                        string PWDT = (string)customerJsonObj.SelectToken("custPWD");
-                        authStringT += uNameT;
-                        authStringT += PWDT;
-                        Console.WriteLine("custUsename: {0}", uNameT);
-                        Console.WriteLine("custPWD: {0}", PWDT);
+                        string tcustUsername = (string)customerJsonObj.SelectToken("custUsername");
+                        string tcustPWD = (string)customerJsonObj.SelectToken("custPWD");
+                        string tcustAuthString = "" + tcustUsername + tcustPWD;
+
+                        // merchant ID and password, prepare for merchant authentication
+                        JObject merchantJsonObj = (JObject)received.SelectToken("merchantIdent");
+                        string tmerchantUsername = (string)merchantJsonObj.SelectToken("merchantUsername");
+                        string tmerchantPWD = (string)customerJsonObj.SelectToken("merchantPWD");
+                        string tmerchantAuthString = "" + tmerchantUsername + tmerchantPWD;
 
                         // obtain transaction object and extract information
                         JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
@@ -472,29 +478,48 @@ namespace PaymentServer
                         int tminute = (int)ttransactionTime.SelectToken("minute");
                         int tsecond = (int)ttransactionTime.SelectToken("second");
 
-
-
-                        // authenticate user
-                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authStringT))
+                        // authentication costomer
+                        if (! paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString))
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
-                        }
-                        else
-                        {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
+                            break;
                         }
+
+                        // authentication merchant
+                        if (!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString))
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
+                            break;
+                        }
+
+
+                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
+                        messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                        messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                        messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
+
+                        DateTime ttime = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
+                        transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
+                        
+                        
 
                         // contact bank
 
+
                         //build response message content from already defined JSON Objects               
-                        defineResponse.Insert(0, headers);
-                        defineResponse.Add(messageType);          
+                                  
 
                         break;
                 }

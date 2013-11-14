@@ -478,6 +478,12 @@ namespace PaymentServer
                         int tminute = (int)ttransactionTime.SelectToken("minute");
                         int tsecond = (int)ttransactionTime.SelectToken("second");
 
+
+                        /*JT: we need to add a boolean field to the transaction object to specify if it is a refund or not.  
+                         *    We will use this field to determine whether to authenticate using tcustAuthString or tmerchantAuthString
+                         *    The way it is now, we are trying to authenticate both, which means one of them will not authenticate and
+                         *    this will always break out of the switch statement before attempting the payment transaction.                         
+                        */
                         // authentication costomer
                         if (! paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString))
                         {
@@ -514,7 +520,7 @@ namespace PaymentServer
                         transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
                         
                         
-
+                        //JT: Before we contact the bank, we need to pull the user's account details from the database first
                         // contact bank
 
 

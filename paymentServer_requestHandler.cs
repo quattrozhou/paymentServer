@@ -52,6 +52,7 @@ public enum clientIncomingCodeEnum
     IN_CODE_LOGIN_REQ = 0,
     IN_CODE_SIGN_UP_REQ = 1,
     IN_CODE_GET_USER_PROFILE = 2,
+    IN_CODE_PROCESS_PAYMENT_REQ = 3,
     //all new codes should be placed above this line
     IN_CODE_MAX
 };
@@ -60,12 +61,12 @@ public enum clientIncomingCodeEnum
 namespace PaymentServer
 {
 
-    public class ServiceHandler
+    public class paymentServer_requestHandler
     {
         
 
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
-            MySQLDataHandler DBHandler = new MySQLDataHandler();
+            paymentServer_dataBase DBHandler = new paymentServer_dataBase();
 
             JsonObjectCollection headers;
             JsonObjectCollection messageType;
@@ -289,7 +290,7 @@ namespace PaymentServer
                         Console.WriteLine("custPWD: {0}", PWD);
 
                         //Call the ServerWorker function
-                        if (ServerWorker.authenticateUser(DBHandler, authString))  
+                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))  
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -309,7 +310,7 @@ namespace PaymentServer
                      
                     /*
                      * handle new user sign-up request
-                     */
+                     */ 
                     case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
                         UserProfile newProfile = new UserProfile();
 
@@ -317,39 +318,43 @@ namespace PaymentServer
                         JObject newUser = (JObject)received.SelectToken("user");
                         JObject acct = (JObject)newUser.SelectToken("account");
                         JObject UID = (JObject)newUser.SelectToken("userID");
-                        JObject DOB = (JObject)newUser.SelectToken("dateOfBirth");
+                        JObject persInfo = (JObject)newUser.SelectToken("personalInfo");
+                        JObject DOB = (JObject)persInfo.SelectToken("dateOfBirth");
+                        JObject HWInfo = (JObject)newUser.SelectToken("hardwareInfo");
+
 
                         //Populate the newProfile object with the information received from the client
                         newProfile.userType = (string)newUser.SelectToken("userType");
-                        newProfile.receiveCommunication = (bool)newUser.SelectToken("receiveCommunication");
+                        newProfile.receiveCommunication = Convert.ToInt16((bool)newUser.SelectToken("receiveCommunication"));                     
                         newProfile.bankCode = (string)acct.SelectToken("bankCode");
                         newProfile.accountNum = (string)acct.SelectToken("accountNum");
                         newProfile.accountPWD = (string)acct.SelectToken("accountPWD");
-                        newProfile.acctBalance = (double)acct.SelectToken("acctBalance");
                         newProfile.username = (string)UID.SelectToken("username");
                         newProfile.password = (string)UID.SelectToken("password");
-                        newProfile.firstName = (string)UID.SelectToken("firstName");
-                        newProfile.lastName = (string)UID.SelectToken("lastName");
+                        newProfile.firstName = (string)persInfo.SelectToken("firstName");
+                        newProfile.middleName = (string)persInfo.SelectToken("middleName");
+                        newProfile.lastName = (string)persInfo.SelectToken("lastName");
                         newProfile.DOBDay = (int)DOB.SelectToken("DOBDay");
                         newProfile.DOBMonth = (int)DOB.SelectToken("DOBMonth");
                         newProfile.DOBYear = (int)DOB.SelectToken("DOBYear");
-                        newProfile.occupation = (string)UID.SelectToken("occupation");
-                        newProfile.SIN = (int)UID.SelectToken("SIN");
-                        newProfile.address1 = (string)UID.SelectToken("address1");
-                        newProfile.address2 = (string)UID.SelectToken("address2");
-                        newProfile.city = (string)UID.SelectToken("city");
-                        newProfile.province = (string)UID.SelectToken("province");
-                        newProfile.country = (string)UID.SelectToken("country");
-                        newProfile.postalCode = (string)UID.SelectToken("postalCode");
-                        newProfile.email = (string)UID.SelectToken("email");
-                        newProfile.phoneNumber = (int)UID.SelectToken("phoneNumber");  
+                        newProfile.occupation = (string)persInfo.SelectToken("occupation");
+                        newProfile.SIN = (int)persInfo.SelectToken("SIN");
+                        newProfile.address1 = (string)persInfo.SelectToken("address1");
+                        newProfile.address2 = (string)persInfo.SelectToken("address2");
+                        newProfile.city = (string)persInfo.SelectToken("city");
+                        newProfile.province = (string)persInfo.SelectToken("province");
+                        newProfile.country = (string)persInfo.SelectToken("country");
+                        newProfile.postalCode = (string)persInfo.SelectToken("postalCode");
+                        newProfile.email = (string)persInfo.SelectToken("email");
+                        newProfile.phoneNumber = (int)persInfo.SelectToken("phoneNumber");
+                        newProfile.POSHWID = (int)HWInfo.SelectToken("POSHWID");
                         newProfile.authenticationString = "";
                         newProfile.authenticationString += newProfile.username;
                         newProfile.authenticationString += newProfile.password; 
                        
                         //pass the populated newProfile information to ServerWorker to try and create a new profile
                         //and build response message to client based on the return code receiveed from ServerWorker
-                        if (ServerWorker.createNewProfile(DBHandler, newProfile) == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
+                        if (paymentServer_requestWorker.createNewProfile(DBHandler, newProfile) == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
@@ -377,7 +382,7 @@ namespace PaymentServer
                         JObject requester = (JObject)received.SelectToken("user");
                         int userNum = (int)requester.SelectToken("userNo");
 
-                        GetProfileResultType UserProf = ServerWorker.getUserProfile(DBHandler, userNum);
+                        GetProfileResultType UserProf = paymentServer_requestWorker.getUserProfile(DBHandler, userNum);
                         if (UserProf.status == ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
                             //populate messageType fields 
@@ -389,7 +394,7 @@ namespace PaymentServer
                             user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
                             user = insert(user, userType, new JsonStringValue("userType", (string)UserProf.profile.userType));
                             user = insert(user, transactionHistory, new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
-                            user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", (bool)UserProf.profile.receiveCommunication));
+                            user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", Convert.ToBoolean(UserProf.profile.receiveCommunication)));
                             
                             account = insert(account, bankCode, new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
                             account = insert(account, accountNum, new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
@@ -436,6 +441,9 @@ namespace PaymentServer
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
                         defineResponse.Add(user); 
+                        break;
+
+                    case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
                         break;
                 }
             }   

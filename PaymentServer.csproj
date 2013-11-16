@@ -107,15 +107,15 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MySQLDataHandler.cs" />
+    <Compile Include="paymentServer_dataBase.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="ServiceHandler.cs" />
-    <Compile Include="ServerWorker.cs" />
-    <Compile Include="HttpsServer.cs">
+    <Compile Include="paymentServer_requestHandler.cs" />
+    <Compile Include="paymentServer_requestWorker.cs" />
+    <Compile Include="paymentServer_connection.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

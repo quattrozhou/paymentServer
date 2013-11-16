@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using System.Security.Cryptography.X509Certificates;
 using PaymentServer;
 
-
+// new changes
 
 namespace PaymentServer
 {
@@ -312,11 +312,11 @@ namespace PaymentServer
 
         public override void handleGETRequest (HttpProcessor p)
 		{
-            ServiceHandler.handleRequest(p, null, "GET");    
+            paymentServer_requestHandler.handleRequest(p, null, "GET");    
         }
 
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData) {
-            ServiceHandler.handleRequest(p, inputData, "POST");
+            paymentServer_requestHandler.handleRequest(p, inputData, "POST");
         }
     }
 

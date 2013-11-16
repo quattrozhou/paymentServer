@@ -228,15 +228,15 @@ namespace PaymentServer
             merchantIdent.Add(merchantPWD);
 
             JsonNumericValue transactionID = new JsonNumericValue("transactionID", -1);
-            JsonNumericValue debitAmount = new JsonNumericValue("debitAmount", -1);
-            JsonNumericValue creditAmount = new JsonNumericValue("creditAmount", -1);
+            JsonNumericValue amount = new JsonNumericValue("debitAmount", -1);
+            JsonBooleanValue isRefund = new JsonBooleanValue("isRefund", false);
             JsonNumericValue balance = new JsonNumericValue("balance", -1);
             JsonNumericValue receiptNo = new JsonNumericValue("receiptNo", -1);
             transactions = new JsonObjectCollection();
             transactions.Name = "transactions";
             transactions.Add(transactionID);
-            transactions.Add(debitAmount);
-            transactions.Add(creditAmount);
+            transactions.Add(amount);
+            transactions.Add(isRefund);
             transactions.Add(balance);
             transactions.Add(receiptNo);
             transactions.Add(transactionDate);

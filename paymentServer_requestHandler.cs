@@ -512,7 +512,7 @@ namespace PaymentServer
                         }
 
 
-                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
+                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS));
                         messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                         messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
@@ -520,8 +520,9 @@ namespace PaymentServer
                         DateTime ttime = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
                         transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
                         
-                        
-                        //JT: Before we contact the bank, we need to pull the user's account details from the database first
+                        // pull user's account details
+                        paymentServer_requestWorker.getUserProfile(DBHandler, int userNo);
+
                         // contact bank
 
 

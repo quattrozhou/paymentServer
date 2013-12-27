@@ -121,6 +121,7 @@
     <Compile Include="paymentServer_connection.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="structs.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".git\objects\info\" />

@@ -16,51 +16,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using PaymentServer;
 
-public enum ResultCodeType
-{
-    ERROR_UNKNOWN = -1,
-    RESULT_CREATE_PROFILE_SUCCESS = 0,
-    ERROR_CREATE_PROFILE_USERNAME_TAKEN = 1,
-    ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
-    ERROR_CREATE_PROFILE_INVALID_BANK_ACCT_NUM = 3,
-    ERROR_CREATE_PROFILE_INVALID_BANK_CODE = 4,
-    ERROR_CREATE_PROFILE_ACCOUNT_EXISTS = 5,
-    UPDATE_USER_PROFILE_SUCCESS = 6,
-    ERROR_UPDATE_USER_PROFILE = 7,
-    //all new codes should be placed above this line
-    ERROR_CREATE_PROFILE_MAX
-};
-
-/* Outgoing transaction message codes sent to mobile devices and web clients */
-public enum clientOutgoingCodeEnum
-{
-    OUT_CODE_INVALID = -1,
-    OUT_CODE_LOGIN_SUCCESS = 0,
-    OUT_CODE_LOGIN_FAILURE = 1,
-    OUT_CODE_SIGN_UP_SUCCESS = 2,
-    OUT_CODE_SIGN_UP_FAILURE = 3,
-    OUT_CODE_SEND_USER_PROFILE_SUCCESS = 4,
-    OUT_CODE_SEND_USER_PROFILE_FAILURE = 5,
-    OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS = 6,
-    OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE = 7,
-    OUT_CODE_TRANSACTION_MERCHANT_AUTH_SUCCESS = 8,
-    OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE = 9,
-    //all new codes should be placed above this line
-    OUT_CODE_MAX
-};
-
-/* Incoming transaction message codes received from mobile devices and web clients */
-public enum clientIncomingCodeEnum
-{
-    IN_CODE_INVALID = -1,
-    IN_CODE_LOGIN_REQ = 0,
-    IN_CODE_SIGN_UP_REQ = 1,
-    IN_CODE_GET_USER_PROFILE = 2,
-    IN_CODE_PROCESS_PAYMENT_REQ = 3,
-    //all new codes should be placed above this line
-    IN_CODE_MAX
-};
-
 
 namespace PaymentServer
 {
@@ -310,7 +265,7 @@ namespace PaymentServer
                         }
                         //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
-                        defineResponse.Add(messageType);          
+                        defineResponse.Add(messageType);
                         break;
                      
                     /*
@@ -449,6 +404,8 @@ namespace PaymentServer
                         break;
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
+                        // --------------------Message comming in-------------------------------------
+                        // --------------------Extract information-------------------------------
                         // customer ID and password, prepare for curstomer authentication
                         JObject customerJsonObj = (JObject)received.SelectToken("customer");
                         string tcustUsername = (string)customerJsonObj.SelectToken("custUsername");
@@ -464,10 +421,12 @@ namespace PaymentServer
                         // obtain transaction object and extract information
                         JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
                         int ttransactionID = (int)transactionJsonObj.SelectToken("transactionID");
-                        int tdebitAmount = (int)transactionJsonObj.SelectToken("debitAmount");
-                        int tcreditAmount = (int)transactionJsonObj.SelectToken("creditAmount");
+                        double tdebitAmount = (double)transactionJsonObj.SelectToken("debitAmount");
+                        double tcreditAmount = (double)transactionJsonObj.SelectToken("creditAmount");
                         int tbalance = (int)transactionJsonObj.SelectToken("balance");
                         int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
+
+                        Boolean isRefundT = (Boolean)transactionJsonObj.SelectToken("isRefund");
                         
                         // obtain transaction date and time
                         JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
@@ -479,55 +438,123 @@ namespace PaymentServer
                         int tminute = (int)ttransactionTime.SelectToken("minute");
                         int tsecond = (int)ttransactionTime.SelectToken("second");
 
+                        DateTime transactionTimeOnMobile = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
 
-                        /*JT: we need to add a boolean field to the transaction object to specify if it is a refund or not.  
-                         *    We will use this field to determine whether to authenticate using tcustAuthString or tmerchantAuthString
-                         *    The way it is now, we are trying to authenticate both, which means one of them will not authenticate and
-                         *    this will always break out of the switch statement before attempting the payment transaction.                         
-                        */
+                        // -------------authentication costomer-----------------------------
                         // authentication costomer
-                        if (! paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString))
+                        if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString)) && !isRefundT)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid customer username and passowrd combination"));
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
                             break;
                         }
 
+                        //// ------------authentication merchant-------------------------------------
                         // authentication merchant
-                        if (!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString))
+                        if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString)) && isRefundT)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid merchant username and passowrd combination"));
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
                             break;
                         }
 
+                        DateTime ttime = DateTime.Now;
 
-                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS));
+                        // -----------prepare transaction record object-----------------------------
+                        // add this transactio recoed into database
+                        transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
+                        trecode.isRefund = isRefundT;
+                        trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
+                        trecode.transactionMessage = "";
+                        trecode.receiptNumber = "";
+
+                        // ---------get user profile----------------------------------
+                        // pull user's account details
+                        JObject userNumJobj = (JObject)received.SelectToken("user");
+                        int userNum_transaction = (int)userNumJobj.SelectToken("userNo");
+
+                        GetProfileResultType UserProf_transaction = paymentServer_requestWorker.getUserProfile(DBHandler, userNum_transaction);
+
+                        if (UserProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
+
+                            trecode.transactionMessage = "error when look up customer infor from database";
+                            break;
+                        }
+
+                        // prepare for the bank info for bank server
+                        string accountNum_transaction = UserProf_transaction.profile.accountNum;
+                        string accountPWD_transaction = UserProf_transaction.profile.accountPWD;
+                        string bankCode_transaction = UserProf_transaction.profile.bankCode;
+
+                        // ------------get merchant profile---------------------------------------
+                        // pull merchant's account details
+                        JObject merchantNumJobj = (JObject)received.SelectToken("merchantID");
+                        int merchantNum_transaction = (int)userNumJobj.SelectToken("userNo");
+
+                        GetProfileResultType merchantProf_transaction = paymentServer_requestWorker.getUserProfile(DBHandler, userNum_transaction);
+
+                        if (merchantProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
+
+                            trecode.transactionMessage = "error when look up merchant infor from database";
+                            break;
+                        }
+
+                        // prepare for the bank info for bank server
+                        string accountNumMerchant_transaction = merchantProf_transaction.profile.accountNum;
+                        string accountPWDMerchant_transaction = merchantProf_transaction.profile.accountPWD;
+                        string bankCodeMerchant_transaction = merchantProf_transaction.profile.bankCode;
+
+                        // ------------connect to bank server---------------------------------
+                        // contact bank
+                        TransactionResult tresult;
+                        if(! isRefundT)
+                            tresult = paymentServer_connectBank.sendBankTransaction(accountNum_transaction, 
+                                accountPWD_transaction, bankCode_transaction,
+                                accountNumMerchant_transaction, bankCodeMerchant_transaction, tdebitAmount);
+                        else
+                            tresult = paymentServer_connectBank.sendBankTransaction(accountNumMerchant_transaction, 
+                                accountPWDMerchant_transaction, bankCodeMerchant_transaction,
+                                accountNum_transaction, bankCode_transaction, tcreditAmount);
+
+                        // -----------add this transaction record to database-------------------------
+                        trecode.status = tresult.status;
+                        trecode.transactionMessage = tresult.transactionMessage;
+                        trecode.receiptNumber = tresult.receiptNumber;
+                        ResultCodeType dbr = paymentServer_requestWorker.createNewTransactionRecord(DBHandler, trecode);
+
+                        // -------------analyse bank server response------------------------------
+                        if(tresult.status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_APPROVED));
+                        else
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_FAILED));
                         messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                        messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
+                        messageType = insert(messageType, details, new JsonStringValue(tresult.transactionMessage));
 
-                        DateTime ttime = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
-                        transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
-                        
-                        // pull user's account details
-                        paymentServer_requestWorker.getUserProfile(DBHandler, int userNo);
-
-                        // contact bank
-
-
-                        //build response message content from already defined JSON Objects               
-                                  
+                        //build response message content from already defined JSON Objects                           
+                        defineResponse.Insert(0, headers);
+                        defineResponse.Add(messageType);
+                        defineResponse.Add(user);      
 
                         break;
                 }

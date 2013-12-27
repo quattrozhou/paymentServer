@@ -6,12 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using PaymentServer;
 
-public struct GetProfileResultType
-{
-    public UserProfile profile;
-    public ResultCodeType status;
-};
-
 //  this is test_chang, welcome
 namespace PaymentServer
 {
@@ -138,6 +132,17 @@ namespace PaymentServer
         {
             ResultCodeType result = new ResultCodeType();
             return result;
+        }
+
+        public static ResultCodeType createNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
+        {
+            ResultCodeType res = new ResultCodeType();
+
+            /* NEED help on this method
+             * 
+             * 
+             * */
+            return res;
         }
 
     }

@@ -115,7 +115,7 @@ namespace PaymentServer
                 }
                 else
                 {
-                    Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {}, Expected: {}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
+                    // Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {}, Expected: {}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
                 }
 
             }
@@ -134,14 +134,28 @@ namespace PaymentServer
             return result;
         }
 
-        public static ResultCodeType createNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
+        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             ResultCodeType res = new ResultCodeType();
+            res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
 
-            /* NEED help on this method
-             * 
-             * 
-             * */
+            List<string>[] list = DBHandler.Select("userProfile", "userNo", "" + tr.userNo);
+            if (list.Length != 1) return res; // exit if there is an error in database
+
+            if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry
+
+            res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
+
+            // UserProfile p = new UserProfile();
+            // PropertyInfo[] properties = p.GetType().GetProperties();
+
+            string transactionHistory = list[0][25];
+
+            transactionHistory = transactionHistory + "\n" + tr.MyToString();
+
+            DBHandler.Update("userProfile", "transactionHistory = '" + transactionHistory + "'", "userNo = "+tr.userNo);
+
+            res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
             return res;
         }
 

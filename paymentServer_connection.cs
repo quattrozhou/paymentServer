@@ -319,7 +319,45 @@ namespace PaymentServer
     }
 
     public class TestMain {
-        public static int Main(String[] args) {
+        public static int Main(String[] args)
+        {
+            paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+
+            UserProfile p = new UserProfile();
+            p.userNo = 555;
+            p.username = "username";
+            p.email = "u@g.com";
+            p.password = "passw";
+            p.userType = "";
+            p.firstName = "chang";
+            p.middleName = "";
+            p.lastName = "zhou";
+            p.DOBDay = 1999;
+            p.DOBMonth = 12;
+            p.DOBDay = 15;
+            p.transactionHistory = "";
+
+            // paymentServer_requestWorker.createNewProfile(DBHandler, p);
+            GetProfileResultType g = paymentServer_requestWorker.getUserProfile(DBHandler, 555);
+            Console.WriteLine("1: "+g.profile.username);
+
+            DBHandler.Update("userProfile", "transactionHistory = 'new Line'", "userNo = 555");
+
+            GetProfileResultType g2 = paymentServer_requestWorker.getUserProfile(DBHandler, 555);
+            Console.WriteLine("2: " + g2.profile.transactionHistory);
+
+            // DBHandler.Insert("userProfile", "(userNo)", "('0')");
+            // List<string>[] list = DBHandler.Select("userProfile", "userNo", "" + 1);
+
+            // Console.WriteLine(list.Length);
+            // Console.WriteLine(list[0]);
+
+            Console.ReadLine();
+            return 0;
+        }
+
+
+        public static int Main2(String[] args) {
             HttpServer httpServer;
             string certificate = null;
             if (args.GetLength(0) > 0) {

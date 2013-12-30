@@ -10,7 +10,7 @@ using MySql.Data.MySqlClient;
 //define user profile data structure
 //THIS ENUMERATION MUST ALIGN WITH THE CURRENT DATABASE MODEL
 //DO NOT ADD OR MODIFY THIS ENUM UNLESS THE DATABASE MODEL HAS BEEN MODIFIED ACCORDINGLY
-//DOING SO WILL YIELD CATASTROPHIC RESULTS 
+//DOING SO WILL YIELD CATASTROPHIC RESULTS
 public enum UserProfileEnum
 {
     userNo = 0,
@@ -267,8 +267,9 @@ namespace PaymentServer
 
             //Create a list to store the result
             int numRecords = Count("*", table);
+            Console.WriteLine(numRecords);
             List<string>[] list = new List<string>[numRecords];
-            for (int i = 0; i > numRecords; i++)
+            for (int i = 0; i < numRecords; i++)
             {
                 list[i] = new List<string>();
             }
@@ -283,10 +284,15 @@ namespace PaymentServer
 
                 //Read the data and store them in the list
                 int numReads = 0;
+                string read = "";
                 while (dataReader.Read())
                 {
-                    list[numReads].Add(dataReader[numReads] + "");
+                    if (dataReader[numReads] != null)
+                        read = ""+dataReader[numReads].ToString();
+                    Console.WriteLine(list.Length+ " "+numReads+" "+read);
+                    list[numReads].Add(read);
                     numReads++;
+                    read = "";
                 }
                 if (numReads != numRecords)
                 {

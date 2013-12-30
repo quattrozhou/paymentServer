@@ -426,6 +426,9 @@ namespace PaymentServer
                         int tbalance = (int)transactionJsonObj.SelectToken("balance");
                         int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
 
+                        JObject transactionRequester = (JObject)received.SelectToken("user");
+                        int transactionUserNo = (int)transactionRequester.SelectToken("userNo");
+
                         Boolean isRefundT = (Boolean)transactionJsonObj.SelectToken("isRefund");
                         
                         // obtain transaction date and time
@@ -473,6 +476,7 @@ namespace PaymentServer
                         // -----------prepare transaction record object-----------------------------
                         // add this transactio recoed into database
                         transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
+                        trecode.userNo = transactionUserNo;
                         trecode.isRefund = isRefundT;
                         trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
                         trecode.transactionMessage = "";
@@ -540,7 +544,7 @@ namespace PaymentServer
                         trecode.status = tresult.status;
                         trecode.transactionMessage = tresult.transactionMessage;
                         trecode.receiptNumber = tresult.receiptNumber;
-                        ResultCodeType dbr = paymentServer_requestWorker.createNewTransactionRecord(DBHandler, trecode);
+                        ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                         // -------------analyse bank server response------------------------------
                         if(tresult.status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
@@ -554,7 +558,7 @@ namespace PaymentServer
                         //build response message content from already defined JSON Objects                           
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
-                        defineResponse.Add(user);      
+                        defineResponse.Add(user);
 
                         break;
                 }

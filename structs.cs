@@ -23,6 +23,9 @@ namespace PaymentServer
         ERROR_CREATE_PROFILE_ACCOUNT_EXISTS = 5,
         UPDATE_USER_PROFILE_SUCCESS = 6,
         ERROR_UPDATE_USER_PROFILE = 7,
+        ERROR_TRANSACTION_HISTORY_GET_PROFILE = 8,
+        ERROR_TRANSACTION_HISTORY_UPDATE = 9,
+        SUCC_TRANSACTION_HISTORY_UPDATE = 10,
         //all new codes should be placed above this line
         ERROR_CREATE_PROFILE_MAX
     };
@@ -132,6 +135,7 @@ namespace PaymentServer
         public FromBankServerMessageTypes status;
         public string transactionMessage;
         public string receiptNumber;
+        public int userNo;
 
         public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, double a)
         {
@@ -143,6 +147,7 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
+            userNo = 0;
         }
 
         public transactionRecord(DateTime d, string cn, string mn, double a)
@@ -155,6 +160,7 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
+            userNo = 0;
         }
 
         public transactionRecord()
@@ -167,11 +173,20 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
+            userNo = 0;
         }
 
-        public string toString()
+        public string MyToString()
         {
-            return "" + time.ToString() + " A: " + customerName + " B: " + merchantName + " amount: " + amount;
+            return "" + time.ToString() +
+                " payer: " + customerName +
+                " payee: " + merchantName +
+                " amount: " + amount +
+                " isRefund: " + isRefund +
+                " status: " + (int) status +
+                " message: " + transactionMessage +
+                " receiptNumber: " + receiptNumber +
+                " userNo: " + userNo;
         }
     }
 

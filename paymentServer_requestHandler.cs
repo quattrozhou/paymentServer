@@ -497,6 +497,9 @@ namespace PaymentServer
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
                             trecode.transactionMessage = "error when look up customer infor from database";
+
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
                             break;
                         }
 
@@ -520,6 +523,9 @@ namespace PaymentServer
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
                             trecode.transactionMessage = "error when look up merchant infor from database";
+
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
                             break;
                         }
 

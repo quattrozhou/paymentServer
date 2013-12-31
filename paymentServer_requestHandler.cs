@@ -191,6 +191,7 @@ namespace PaymentServer
             JsonBooleanValue isRefund = new JsonBooleanValue("isRefund", false);
             JsonNumericValue balance = new JsonNumericValue("balance", -1);
             JsonNumericValue receiptNo = new JsonNumericValue("receiptNo", -1);
+            JsonStringValue transactionMessage = new JsonStringValue("transactionMessage", "");
             transactions = new JsonObjectCollection();
             transactions.Name = "transactions";
             transactions.Add(transactionID);
@@ -201,6 +202,7 @@ namespace PaymentServer
             transactions.Add(transactionDate);
             transactions.Add(transactionTime);
             transactions.Add(merchantID);
+            transactions.Add(transactionMessage);
 
 
             //create JSON object
@@ -561,10 +563,18 @@ namespace PaymentServer
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                         messageType = insert(messageType, details, new JsonStringValue(tresult.transactionMessage));
 
+                        transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, amount, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, isRefund, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, balance, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, receiptNo, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, merchantID, new JsonNumericValue("transactionID", (int)1));
+                        transactions = insert(transactions, transactionMessage, new JsonStringValue("transactionID", ""));
+
                         //build response message content from already defined JSON Objects                           
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
-                        defineResponse.Add(user);
+                        defineResponse.Add(transactions);
 
                         break;
                 }

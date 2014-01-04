@@ -1,0 +1,124 @@
+﻿<html>
+
+<head>
+<title>Payment Solution | Subscription Form</title>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<style media="screen" type="text/css">
+h2 {text-align:center; font: bold 30px calibri,sans-serif; background-image: -moz-linear-gradient(top left, #4059FF 0%, #0EBBEF 100%);
+    margin-right:450px; margin-left:450px; color:white}
+h1 {
+        font: 16px calibri,sans-serif; text-align:center;
+        margin-bottom: 8px;
+    }
+p.fineprint {
+    margin-right: 450px;
+    margin-left: 450px;
+}
+br.small {
+line-height: 4px;
+}
+body {text-align:center;}
+
+</style>
+</head>
+
+<body>
+<h2>Payment Solution | Subscription Form</h2>
+<form id="form">
+<h1>Section 1 | Account Information</h1>
+<select id = "AccountType">
+    <option value = "1">Account Type*</option>
+    <option value = "2">Client</option>
+    <option value = "3">Merchant</option></select>
+<br class ="small"><br class ="small">
+<input id="Email" type="text" name="email" placeholder="Email address*"/>
+<br class ="small"><br class ="small">
+<input id="Username" type="text" name="username" placeholder="Choose a Username*" />
+<br class ="small"><br class ="small">
+<input id="Password" type="password" name="password" placeholder="Choose a Password*" />
+<br class ="small">
+
+<h1>Section 2 | Personal Information</h1>
+<input id="FirstName" type="text" name="firstname" placeholder="First name*"/>
+<br class ="small"><br class ="small">
+<input id="LastName" type="text" name="lastname" placeholder="Last name*"/>
+<br class ="small"><br class ="small">
+<input id="Birth" type="text" name="birth" placeholder="ddmmyyyy" />
+<br class ="small"><br class ="small">
+<input id="Occupation" type="text" name="occupation" placeholder="Occupation*" />
+<br class ="small"><br class ="small">
+<input id="social" type="text" name="social" placeholder="Social Insurance #*" />
+<br class ="small">
+
+<h1>Section 3 | Contact Information</h1>
+<input id="Address" type="text" name="address" placeholder="Main Address*"/>
+<br class ="small"><br class ="small">
+<input id="City" type="text" name="city" placeholder="City*"/>
+<br class ="small"><br class ="small">
+<input id="State" type="text" name="state" placeholder="Province or State*"/>
+<br class ="small"><br class ="small">
+<input id="Country" type="text" name="country" placeholder="Country*"/>
+<br class ="small"><br class ="small">
+<input id="Postal Code" type="text" name="postal" placeholder="Postal code*"/>
+<br class ="small">
+
+<h1>Section 4 | Banking Information</h1>
+<input id="BCode" type="text" name="bankcode" placeholder="Bank code*"/>
+<br class ="small"><br class ="small">
+<input id="Accountnum" type="text" name="accountnum" placeholder="Account number*"/>
+<br class ="small"><br class ="small">
+<input id="Accountpw" type="text" name="accountpw" placeholder="Account password*"/>
+<br class ="small">
+<p class ="fineprint"><font color="grey"; font size ="2"; FONT FACE="arial";>By clicking Sign Up, you agree to receive communications from us about products, services and promotions. We will not share your information with other parties without your permission</font></p>
+
+<input id="input" type="submit" name="submit" value="Sign Up"/>
+</form>
+
+<script>
+    $.fn.formToJSON = function () {
+        var objectGraph = {};
+        function add(objectGraph, name, value) {
+            if (name.length == 1) {
+                objectGraph[name[0]] = value;
+            }
+            else {
+                if (objectGraph[name[0]] == null) {
+                    objectGraph[name[0]] = {};
+                }
+                add(objectGraph[name[0]], name.slice(1), value);
+            }
+        };
+
+        $(this).children('input, textarea').each(function () {
+            if ($(this).attr('name') != 'submit') {
+                add(objectGraph, $(this).attr('name').split('.'), $(this).val());
+            }
+        });
+        return JSON.stringify(objectGraph);
+    };
+
+    $.ajaxSetup({
+        contentType: "application/json; charset=utf-8",
+        dataType: "json"
+    });
+
+    $(document).ready(function () {
+        $('#input').click(function () {
+
+            alert($("#form").formToJSON());				//<----------------- USED TO SHOW THE JSON POST, UNCOMMENT IF WANT TO SEE!
+
+            var send = $("#form").formToJSON();
+            $.ajax({
+                url: "http://ENTER-URL-HERE.com",        //*****ENTER URL OF BANK SERVER HERE*****
+                type: "POST",
+                data: send,
+                error: function (xhr, error) {
+                    alert('Error! Status = ' + xhr.status + ' Message = ' + error);
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

@@ -25,6 +25,17 @@ namespace PaymentServer
             
         }
 
+        /// <summary>
+        /// create JSON object from input field. Call sendStringToServer() method to send string
+        /// pass back the result from bank
+        /// </summary>
+        /// <param name="senderAccNum"></param>
+        /// <param name="senderAccPwd"></param>
+        /// <param name="senderBankCode"></param>
+        /// <param name="recverAccNum"></param>
+        /// <param name="recverBankCode"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
         public static TransactionResult sendBankTransaction(String senderAccNum, String senderAccPwd, String senderBankCode,
             String recverAccNum, String recverBankCode, string amount)
         {
@@ -65,6 +76,13 @@ namespace PaymentServer
             return result;
         }
 
+        /// <summary>
+        /// create a https client thread, send the string, wait for response,
+        /// if not receive anything or in error, the thread will be terminated.
+        /// This thread is protected.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static String sendStringToServer(String input)
         {
             HTTPCLIENT httpclient = new HTTPCLIENT(input);
@@ -81,8 +99,9 @@ namespace PaymentServer
 
             String output = httpclient.getContentReceive();
 
-            Console.WriteLine(countDownTimer + " Terminated!\n" + output);
-            Console.ReadLine();
+            if(countDownTimer == 0)
+                Console.WriteLine(countDownTimer + " Time out! Client thread Terminated!\n" + output);
+            // Console.ReadLine();
 
             return output;
         }
@@ -90,12 +109,15 @@ namespace PaymentServer
 
     
 
-    /* An http client, contain the founction that contact an server
-     * 
-     * 
-     * 
-     * 
-     * */
+    /// <summary>
+    /// an object that can connect to a server with specified url in secured level
+    /// use example:
+    /// HTTPCLIENT httpclient = new HTTPCLIENT(sendString);
+    /// Thread thread = new Thread(new ThreadStart(httpclient.connect));
+    /// thread.Start();
+    /// after some time
+    /// thread.Abort();
+    /// </summary>
     class HTTPCLIENT
     {
         String contentSent = "";
@@ -107,11 +129,14 @@ namespace PaymentServer
         public void connect()
         {
             // Create a request using a URL that can receive a post. 
-            WebRequest request = WebRequest.Create("http://www.contoso.com/PostAccepter.aspx");
+            //WebRequest request = WebRequest.Create("http://www.contoso.com/PostAccepter.aspx");
+            WebRequest request = WebRequest.Create("https://bankserver.dynu.com:443/");
+
             // Set the Method property of the request to POST.
             request.Method = "POST";
+            request.Credentials = CredentialCache.DefaultCredentials;
             // Create POST data and convert it to a byte array.
-            string postData = "This is a test that posts this string to a Web server.";
+            string postData = contentSent;//  "This is a test that posts this string to a Web server.";
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
             // Set the ContentType property of the WebRequest.
             request.ContentType = "application/x-www-form-urlencoded";
@@ -124,6 +149,7 @@ namespace PaymentServer
                 // Write the data to the request stream.
                 dataStream.Write(byteArray, 0, byteArray.Length);
                 // Close the Stream object.
+                Console.WriteLine("OK: write");
                 dataStream.Close();
                 // Get the response.
                 WebResponse response = request.GetResponse();
@@ -143,7 +169,7 @@ namespace PaymentServer
                 reader.Close();
                 dataStream.Close();
                 response.Close();
-
+                Console.WriteLine("OK: read");
                 this.contentReceive = responseFromServer;
             }
             catch (Exception e)

@@ -81,59 +81,70 @@ namespace PaymentServer
             reply.status = ResultCodeType.ERROR_UNKNOWN;
 
             List<string>[] list = DBHandler.Select("userProfile", "username", "" + username);
-            if (list.Length == 1)
+            if (list.Length != 1)
             {
-                if (list[0].Count() == (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS)
-                {
-                    string String = "";
-                    int Int = 1;
-                    bool Bool = false;
-                    double Double = 0.1;
-
-                    object Profile = new UserProfile();
-                    PropertyInfo[] properties = Profile.GetType().GetProperties();
-                    int i;
-                    for (i = 0; i < properties.Length; i++)
-                    {
-                        Console.WriteLine(properties[i].GetValue(Profile, null).ToString());
-                        if (properties[i].GetType() == String.GetType())
-                        {
-                            properties[i].SetValue(Profile, (string)list[0][i], null);
-
-                        }
-                        else if (properties[i].GetType() == Double.GetType())
-                        {
-                            properties[i].SetValue(Profile, Convert.ToDouble(list[0][i]), null);
-                        }
-                        else if (properties[i].GetType() == Int.GetType())
-                        {
-                            properties[i].SetValue(Profile, Convert.ToInt32(list[0][i]), null);
-
-                        }
-                        else if (properties[i].GetType() == Bool.GetType())
-                        {
-                            properties[i].SetValue(Profile, Convert.ToBoolean(list[0][i]), null);
-                        }
-                        reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
-                        reply.profile = (UserProfile)Profile;
-                    }
-                }
-                else
-                {
-                    // Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {}, Expected: {}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
-                }
+                Console.WriteLine("ServerWorker::getUserProfile - Error: Database query returned not one record. Number Received: " + list.Length);
+                return reply;
             }
-            else
+
+            if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS)
             {
-                Console.WriteLine("ServerWorker::getUserProfile - Error: Database query returned more than one record. Number Received: {}", list.Length);
+                Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {0}, Expected: {1}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
+                Console.WriteLine("list[0]: "+list[0][0]+" list[0]size: "+list[0].Count);
+                return reply;
             }
+
+            Console.WriteLine("start get!");
+
+            string String = "";
+            int Int = 1;
+            bool Bool = false;
+            double Double = 0.1;
+
+            object Profile = new UserProfile();
+            PropertyInfo[] properties = Profile.GetType().GetProperties();
+            int i;
+            for (i = 0; i < properties.Length; i++)
+            {
+                Console.WriteLine("gup: " + properties[i].GetValue(Profile, null).ToString());
+                if (properties[i].GetType() == String.GetType())
+                {
+                    properties[i].SetValue(Profile, (string)list[0][i], null);
+
+                }
+                else if (properties[i].GetType() == Double.GetType())
+                {
+                    properties[i].SetValue(Profile, Convert.ToDouble(list[0][i]), null);
+                }
+                else if (properties[i].GetType() == Int.GetType())
+                {
+                    properties[i].SetValue(Profile, Convert.ToInt32(list[0][i]), null);
+
+                }
+                else if (properties[i].GetType() == Bool.GetType())
+                {
+                    properties[i].SetValue(Profile, Convert.ToBoolean(list[0][i]), null);
+                }
+                reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
+                reply.profile = (UserProfile)Profile;
+            }
+            
             return reply;
+        }
+
+        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
+        {
+            string profile = "transactionhistory";
+            string items = tr.getDatabaseColumnList();
+            string values = tr.getDatabaseValueList();
+            DBHandler.Insert(profile, items, values);
+            return 0;
         }
 
          /*
          * Get user profile
          */
-        public static GetProfileResultType getUserProfile(paymentServer_dataBase DBHandler, int userNo)
+        /*public static GetProfileResultType getUserProfile(paymentServer_dataBase DBHandler, int userNo)
         {         
             GetProfileResultType reply = new GetProfileResultType();
             reply.status = ResultCodeType.ERROR_UNKNOWN;
@@ -185,27 +196,18 @@ namespace PaymentServer
 
             else
             {
-                Console.WriteLine("ServerWorker::getUserProfile - Error: Database query returned more than one record. Number Received: {}", list.Length);
+                Console.WriteLine("ServerWorker::getUserProfile - Error: Database query returned more than one record. Number Received: {0}", list.Length);
             }
             return reply;
+        
+        }*/
 
-        }
-
-        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
-        {
-            string table = "transactionHistory";
-            string items = tr.getDatabaseColumnList();
-            string values = tr.getDatabaseValueList();
-            DBHandler.Insert(table, items, values);
-            return 0;
-        }
-
-        public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler, transactionRecord tr)
+        /*public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
 
-            List<string>[] list = DBHandler.Select("userProfile", "userNo", "" );//+ tr.userNo);
+            List<string>[] list = DBHandler.Select("userProfile", "userNo", ""+ tr.userNo);
             if (list.Length != 1) return res; // exit if there is an error in database
 
             if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry
@@ -220,10 +222,10 @@ namespace PaymentServer
             transactionHistory = transactionHistory + "\n" + tr.MyToString();
 
             DBHandler.Update("userProfile", "transactionHistory = '" + transactionHistory + "'", "userNo = "+tr.userNo);
-
+            
             res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
             return res;
-        }
+        }*/
 
     }
 }

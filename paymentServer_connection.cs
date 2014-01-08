@@ -324,13 +324,13 @@ namespace PaymentServer
             paymentServer_dataBase DBHandler = new paymentServer_dataBase();
 
             UserProfile p = new UserProfile();
-            p.userNo = 555;
-            p.username = "username";
+            // p.userNo = 555;
+            p.username = "usernamex1";
             p.email = "u@g.com";
             p.password = "passw";
-            p.userType = "";
+            p.userType = "cu";
             p.firstName = "chang";
-            p.middleName = "";
+            p.middleName = "m";
             p.lastName = "zhou";
             p.DOBDay = 1999;
             p.DOBMonth = 12;
@@ -338,7 +338,9 @@ namespace PaymentServer
             p.transactionHistory = "";
 
             // paymentServer_requestWorker.createNewProfile(DBHandler, p);
-            GetProfileResultType g = paymentServer_requestWorker.getUserProfile(DBHandler, 555);
+
+            // paymentServer_requestWorker.createNewProfile(DBHandler, p);
+            /*GetProfileResultType g = paymentServer_requestWorker.getUserProfile(DBHandler, 555);
             Console.WriteLine("1: "+g.profile.username);
 
             DBHandler.Update("userProfile", "transactionHistory = 'new Line'", "userNo = 555");
@@ -350,7 +352,22 @@ namespace PaymentServer
             // List<string>[] list = DBHandler.Select("userProfile", "userNo", "" + 1);
 
             // Console.WriteLine(list.Length);
-            // Console.WriteLine(list[0]);
+            // Console.WriteLine(list[0]);*/
+
+
+            GetProfileResultType result = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, "usernamex1");
+            Console.WriteLine("result.status: " + result.status);
+
+            /*transactionRecord tr = new transactionRecord();
+            paymentServer_requestWorker.addNewTransactionRecord(DBHandler, tr);
+            return 0;*/
+
+            /*TransactionResult tresult;
+            tresult = paymentServer_connectBank.sendBankTransaction(
+                "str1", "str2", "str3",
+                "str4", "str5", "" + 12334);
+            Console.WriteLine("status: " + tresult.status);
+            Console.WriteLine("receiptNumber: " + tresult.receiptNumber);*/
 
             Console.ReadLine();
             return 0;

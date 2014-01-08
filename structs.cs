@@ -139,9 +139,9 @@ namespace PaymentServer
         public FromBankServerMessageTypes status;
         public string transactionMessage;
         public string receiptNumber;
-        // public int userNo;
+        public int userNo;
 
-        public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, double a)
+        public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, string a)
         {
             this.time = new DateTime(y, m, d, h, min, s);
             this.customerName = cn;
@@ -154,7 +154,7 @@ namespace PaymentServer
             // userNo = 0;
         }
 
-        public transactionRecord(DateTime d, string cn, string mn, double a)
+        public transactionRecord(DateTime d, string cn, string mn, string a)
         {
             this.time = d;
             this.customerName = cn;
@@ -172,7 +172,7 @@ namespace PaymentServer
             time = new DateTime();
             customerName = "";
             merchantName = "";
-            amount = 0;
+            amount = "0";
             isRefund = false;
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
@@ -204,8 +204,17 @@ namespace PaymentServer
             return "('" + this.time.Year + "','" + this.time.Month + "','" + this.time.Day + "','" +
                 this.time.Hour + "','" + this.time.Minute + "','" + this.time.Second + "','" +
                 this.customerName + "','" + this.merchantName +
-                "','" + this.amount + "','" + this.isRefund + "','" + this.status + "','" +
+                "','" + this.amount + "','" + booleanToInt(this.isRefund) + 
+                "','" + (int)(this.status) + "','" +
                 this.transactionMessage + "','" + this.receiptNumber + "')";
+        }
+
+        public static int booleanToInt(Boolean input)
+        {
+            if (input)
+                return 1;
+            else
+                return 0;
         }
     }
 

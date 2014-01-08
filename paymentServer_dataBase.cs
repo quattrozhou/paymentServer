@@ -263,12 +263,17 @@ namespace PaymentServer
         //Select statement
         public List<string>[] Select(string table, string column, string value)
         {
-            string query = "SELECT * FROM " +table+ " WHERE " +column+ "='" + value + "'"; 
+            string query = "SELECT * FROM " +table+ " WHERE " +column+ "='" + value + "'";
+
+            int colSize = (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS;
 
             //Create a list to store the result
             int numRecords = Count("*", table);
-            Console.WriteLine(numRecords);
-            List<string>[] list = new List<string>[numRecords];
+            Console.WriteLine("numRecords: "+numRecords);
+            List<string> [] list = new List<string> [numRecords];
+            
+            // string[] stra = new string[colSize];
+            
             for (int i = 0; i < numRecords; i++)
             {
                 list[i] = new List<string>();
@@ -287,16 +292,18 @@ namespace PaymentServer
                 string read = "";
                 while (dataReader.Read())
                 {
-                    if (dataReader[numReads] != null)
+                    Console.WriteLine(""+dataReader.GetInt32(0) + ": " + dataReader.GetString(1));
+
+                    /*if (dataReader[numReads] != null)
                         read = ""+dataReader[numReads].ToString();
-                    Console.WriteLine(list.Length+ " "+numReads+" "+read);
-                    list[numReads].Add(read);
+                    Console.WriteLine(list[0].Count + " "+numReads+" "+read);
+                    list[0].Add(read);
                     numReads++;
-                    read = "";
+                    read = "EMPTY_SPACE";*/
                 }
                 if (numReads != numRecords)
                 {
-                    Console.WriteLine("MySQLDataHandler::Select - Warning! {0} columns expected, but only {1} were read", numRecords, numReads);
+                    // Console.WriteLine("MySQLDataHandler::Select - Warning! {0} columns expected, but only {1} were read", numRecords, numReads);
                 }
 
                 //close Data Reader

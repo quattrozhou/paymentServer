@@ -192,6 +192,21 @@ namespace PaymentServer
                 " receiptNumber: " + receiptNumber;
                 // " userNo: " + userNo;
         }
+
+        public string getDatabaseColumnList()
+        {
+            return "(time_year, time_month, time_day, time_hour, time_minute, time_second, " +
+                "customerName, merchantName, amount, isRefund, status, transactionMessage, receiptNumber)";
+        }
+
+        public string getDatabaseValueList()
+        {
+            return "('" + this.time.Year + "','" + this.time.Month + "','" + this.time.Day + "','" +
+                this.time.Hour + "','" + this.time.Minute + "','" + this.time.Second + "','" +
+                this.customerName + "','" + this.merchantName +
+                "','" + this.amount + "','" + this.isRefund + "','" + this.status + "','" +
+                this.transactionMessage + "','" + this.receiptNumber + "')";
+        }
     }
 
     class structs

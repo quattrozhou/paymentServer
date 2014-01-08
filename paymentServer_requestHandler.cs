@@ -583,6 +583,8 @@ namespace PaymentServer
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
                             trecode.transactionMessage = "error when look up customer info from database";
+                            trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
+                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
@@ -606,6 +608,8 @@ namespace PaymentServer
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
                             trecode.transactionMessage = "error when look up merchant info from database";
+                            trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
+                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
@@ -621,25 +625,26 @@ namespace PaymentServer
                         // contact bank
                         TransactionResult tresult;
                         if(! isRefundT)
-                            tresult = paymentServer_connectBank.sendBankTransaction(accountNum_transaction, 
-                                accountPWD_transaction, bankCode_transaction,
-                                accountNumMerchant_transaction, bankCodeMerchant_transaction, tdebitAmount);
+                            tresult = paymentServer_connectBank.sendBankTransaction(
+                                accountNum_transaction, accountPWD_transaction, bankCode_transaction,
+                                accountNumMerchant_transaction, bankCodeMerchant_transaction, tamount);
                         else
-                            tresult = paymentServer_connectBank.sendBankTransaction(accountNumMerchant_transaction, 
-                                accountPWDMerchant_transaction, bankCodeMerchant_transaction,
-                                accountNum_transaction, bankCode_transaction, tcreditAmount);
+                            tresult = paymentServer_connectBank.sendBankTransaction(
+                                accountNumMerchant_transaction, accountPWDMerchant_transaction, bankCodeMerchant_transaction,
+                                accountNum_transaction, bankCode_transaction, tamount);
 
                         // -----------add this transaction record to database-------------------------
                         trecode.status = tresult.status;
                         trecode.transactionMessage = tresult.transactionMessage;
                         trecode.receiptNumber = tresult.receiptNumber;
-                        ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                        ResultCodeType dbr2 = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                         // -------------analyse bank server response------------------------------
                         if(tresult.status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_APPROVED));
                         else
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_FAILED));
+                        
                         messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                         messageType = insert(messageType, details, new JsonStringValue(tresult.transactionMessage));

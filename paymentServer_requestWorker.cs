@@ -191,18 +191,21 @@ namespace PaymentServer
 
         }
 
-        public static ResultCodeType processPaymentRequest(paymentServer_dataBase DBHandler, transaction transDetails)
+        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
-            ResultCodeType result = new ResultCodeType();
-            return result;
+            string table = "transactionHistory";
+            string items = tr.getDatabaseColumnList();
+            string values = tr.getDatabaseValueList();
+            DBHandler.Insert(table, items, values);
+            return 0;
         }
 
-        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
+        public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
 
-            List<string>[] list = DBHandler.Select("userProfile", "userNo", "" + tr.userNo);
+            List<string>[] list = DBHandler.Select("userProfile", "userNo", "" );//+ tr.userNo);
             if (list.Length != 1) return res; // exit if there is an error in database
 
             if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry

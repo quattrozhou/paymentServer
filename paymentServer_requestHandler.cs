@@ -258,16 +258,82 @@ namespace PaymentServer
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
+                        
                         }
                         else{
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+
+                            //build response message content from already defined JSON Objects               
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
+                            break;
                         }
+
+                        GetProfileResultType UserProf = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, uName);
+                        if (UserProf.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
+                            
+                            defineResponse.Insert(0, headers);
+                            defineResponse.Add(messageType);
+                            break;
+                        }
+
+                        //populate messageType fields 
+                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_SUCCESS));
+                        messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                        messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+
+                        //populate User fields
+                        user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
+                        user = insert(user, userType, new JsonStringValue("userType", (string)UserProf.profile.userType));
+                        user = insert(user, transactionHistory, new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
+                        user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", Convert.ToBoolean(UserProf.profile.receiveCommunication)));
+
+                        account = insert(account, bankCode, new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
+                        account = insert(account, accountNum, new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
+                        account = insert(account, accountPWD, new JsonStringValue("accountPWD", (string)UserProf.profile.accountPWD));
+                        account = insert(account, acctBalance, new JsonNumericValue("acctBalance", (int)UserProf.profile.acctBalance));
+                        user = insert(user, account, account);
+
+                        hardwareInfo = insert(hardwareInfo, POSHWID, new JsonNumericValue("POSHWID", (int)UserProf.profile.POSHWID));
+                        hardwareInfo = insert(hardwareInfo, currentDK, new JsonStringValue("currentDK", (string)UserProf.profile.currentDK));
+                        hardwareInfo = insert(hardwareInfo, nextDK, new JsonStringValue("nextDK", (string)UserProf.profile.nextDK));
+                        user = insert(user, hardwareInfo, hardwareInfo);
+
+                        userID = insert(userID, username, new JsonStringValue("username", (string)UserProf.profile.username));
+                        userID = insert(userID, password, new JsonStringValue("password", (string)UserProf.profile.password));
+                        user = insert(user, userID, userID);
+
+                        personalInfo = insert(personalInfo, firstName, new JsonStringValue("firstName", (string)UserProf.profile.firstName));
+                        personalInfo = insert(personalInfo, lastName, new JsonStringValue("lastName", (string)UserProf.profile.lastName));
+                        personalInfo = insert(personalInfo, middleName, new JsonStringValue("middleName", (string)UserProf.profile.middleName));
+                        personalInfo = insert(personalInfo, email, new JsonStringValue("email", (string)UserProf.profile.email));
+                        personalInfo = insert(personalInfo, occupation, new JsonStringValue("occupation", (string)UserProf.profile.occupation));
+                        personalInfo = insert(personalInfo, SIN, new JsonNumericValue("SIN", (int)UserProf.profile.SIN));
+                        personalInfo = insert(personalInfo, address1, new JsonStringValue("address1", (string)UserProf.profile.address1));
+                        personalInfo = insert(personalInfo, address2, new JsonStringValue("address2", (string)UserProf.profile.address2));
+                        personalInfo = insert(personalInfo, city, new JsonStringValue("email", (string)UserProf.profile.city));
+                        personalInfo = insert(personalInfo, province, new JsonStringValue("province", (string)UserProf.profile.province));
+                        personalInfo = insert(personalInfo, country, new JsonStringValue("country", (string)UserProf.profile.country));
+                        personalInfo = insert(personalInfo, postalCode, new JsonStringValue("postalCode", (string)UserProf.profile.postalCode));
+                        personalInfo = insert(personalInfo, phoneNumber, new JsonNumericValue("phoneNumber", (int)UserProf.profile.phoneNumber));
+                        dateOfBirth = insert(dateOfBirth, DOBDay, new JsonNumericValue("DOBDay", (int)UserProf.profile.DOBDay));
+                        dateOfBirth = insert(dateOfBirth, DOBMonth, new JsonNumericValue("DOBMonthr", (int)UserProf.profile.DOBMonth));
+                        dateOfBirth = insert(dateOfBirth, DOBYear, new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));
+                        personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
+                        user = insert(user, personalInfo, personalInfo);
+
                         //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
+                        defineResponse.Add(user);
                         break;
                      
                     /*
@@ -312,23 +378,32 @@ namespace PaymentServer
                         newProfile.POSHWID = (int)HWInfo.SelectToken("POSHWID");
                         newProfile.authenticationString = "";
                         newProfile.authenticationString += newProfile.username;
-                        newProfile.authenticationString += newProfile.password; 
+                        newProfile.authenticationString += newProfile.password;
                        
                         //pass the populated newProfile information to ServerWorker to try and create a new profile
                         //and build response message to client based on the return code receiveed from ServerWorker
-                        if (paymentServer_requestWorker.createNewProfile(DBHandler, newProfile) == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
+                        ResultCodeType rtype = paymentServer_requestWorker.createNewProfile(DBHandler, newProfile);
+
+                        if (rtype == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "User account created"));
                         }
-                        else
+                        else if(rtype == ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS)
                         {
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. The email provided is already registered"));
+                        }
+                        else if (rtype == ResultCodeType.ERROR_CREATE_PROFILE_USERNAME_EXISTS)
+                        {
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
+                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. The username provided is already registered"));
                         }
 
                         //build response message content from already defined JSON Objects               
@@ -341,7 +416,7 @@ namespace PaymentServer
                     */
                     case ((int)clientIncomingCodeEnum.IN_CODE_GET_USER_PROFILE):
                         //Retrieve encapsulated JSON objects from message
-                        JObject requester = (JObject)received.SelectToken("user");
+                        /*JObject requester = (JObject)received.SelectToken("user");
                         int userNum = (int)requester.SelectToken("userNo");
 
                         GetProfileResultType UserProf = paymentServer_requestWorker.getUserProfile(DBHandler, userNum);
@@ -403,7 +478,7 @@ namespace PaymentServer
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);
                         defineResponse.Add(user); 
-                        break;
+                        break;*/
 
                     case ((int)clientIncomingCodeEnum.IN_CODE_PROCESS_PAYMENT_REQ):
                         // --------------------Message comming in-------------------------------------
@@ -423,27 +498,42 @@ namespace PaymentServer
                         // obtain transaction object and extract information
                         JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
                         int ttransactionID = (int)transactionJsonObj.SelectToken("transactionID");
-                        double tdebitAmount = (double)transactionJsonObj.SelectToken("debitAmount");
-                        double tcreditAmount = (double)transactionJsonObj.SelectToken("creditAmount");
-                        int tbalance = (int)transactionJsonObj.SelectToken("balance");
-                        int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
-
-                        JObject transactionRequester = (JObject)received.SelectToken("user");
-                        int transactionUserNo = (int)transactionRequester.SelectToken("userNo");
-
+                        // double tdebitAmount = (double)transactionJsonObj.SelectToken("debitAmount");
+                        // double tcreditAmount = (double)transactionJsonObj.SelectToken("creditAmount");
+                        string tamount = (string)transactionJsonObj.SelectToken("amount");
+                        // int tbalance = (int)transactionJsonObj.SelectToken("balance");
+                        // int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
                         Boolean isRefundT = (Boolean)transactionJsonObj.SelectToken("isRefund");
+
+                        // JObject transactionRequester = (JObject)received.SelectToken("user");
+                        // int transactionUserNo = (int)transactionRequester.SelectToken("userNo");
                         
                         // obtain transaction date and time
-                        JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
+                        /*JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
                         int tyear = (int)ttransactionDate.SelectToken("year");
                         int tmonth = (int)ttransactionDate.SelectToken("month");
                         int tday = (int)ttransactionDate.SelectToken("day");
                         JObject ttransactionTime = (JObject)transactionJsonObj.SelectToken("transactionTime");
                         int thour = (int)ttransactionTime.SelectToken("hour");
                         int tminute = (int)ttransactionTime.SelectToken("minute");
-                        int tsecond = (int)ttransactionTime.SelectToken("second");
+                        int tsecond = (int)ttransactionTime.SelectToken("second");*/
 
-                        DateTime transactionTimeOnMobile = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
+                        // DateTime transactionTimeOnMobile = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
+
+                        DateTime currentTime = DateTime.Now;
+
+                        // -----------prepare transaction record object-----------------------------
+                        // add this transactio recoed into database
+                        transactionRecord trecode = new transactionRecord();
+                        // trecode.userNo = transactionUserNo;
+                        trecode.time = currentTime;
+                        trecode.customerName = tcustUsername;
+                        trecode.merchantName = tmerchantUsername;
+                        trecode.amount = tamount;
+                        trecode.isRefund = isRefundT;
+                        trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_CUSTOMER;
+                        trecode.transactionMessage = "";
+                        trecode.receiptNumber = "";
 
                         // -------------authentication costomer-----------------------------
                         // authentication costomer
@@ -456,6 +546,10 @@ namespace PaymentServer
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
+
+                            /// store transaction record
+                            trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_CUSTOMER;
+                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
                             break;
                         }
 
@@ -470,26 +564,16 @@ namespace PaymentServer
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
+
+                            /// store transaction record
+                            trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_MERCHANT;
+                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
                             break;
                         }
 
-                        DateTime ttime = DateTime.Now;
-
-                        // -----------prepare transaction record object-----------------------------
-                        // add this transactio recoed into database
-                        transactionRecord trecode = new transactionRecord(ttime, tcustUsername, tmerchantUsername, tdebitAmount);
-                        trecode.userNo = transactionUserNo;
-                        trecode.isRefund = isRefundT;
-                        trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-                        trecode.transactionMessage = "";
-                        trecode.receiptNumber = "";
-
                         // ---------get user profile----------------------------------
                         // pull user's account details
-                        JObject userNumJobj = (JObject)received.SelectToken("user");
-                        int userNum_transaction = (int)userNumJobj.SelectToken("userNo");
-
-                        GetProfileResultType UserProf_transaction = paymentServer_requestWorker.getUserProfile(DBHandler, userNum_transaction);
+                        GetProfileResultType UserProf_transaction = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, tcustUsername);
 
                         if (UserProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
@@ -498,7 +582,7 @@ namespace PaymentServer
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
-                            trecode.transactionMessage = "error when look up customer infor from database";
+                            trecode.transactionMessage = "error when look up customer info from database";
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
@@ -512,10 +596,7 @@ namespace PaymentServer
 
                         // ------------get merchant profile---------------------------------------
                         // pull merchant's account details
-                        JObject merchantNumJobj = (JObject)received.SelectToken("merchantID");
-                        int merchantNum_transaction = (int)userNumJobj.SelectToken("userNo");
-
-                        GetProfileResultType merchantProf_transaction = paymentServer_requestWorker.getUserProfile(DBHandler, userNum_transaction);
+                        GetProfileResultType merchantProf_transaction = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, tmerchantUsername);
 
                         if (merchantProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
@@ -524,7 +605,7 @@ namespace PaymentServer
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
 
-                            trecode.transactionMessage = "error when look up merchant infor from database";
+                            trecode.transactionMessage = "error when look up merchant info from database";
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);

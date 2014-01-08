@@ -26,7 +26,7 @@ namespace PaymentServer
         }
 
         public static TransactionResult sendBankTransaction(String senderAccNum, String senderAccPwd, String senderBankCode,
-            String recverAccNum, String recverBankCode, double amount)
+            String recverAccNum, String recverBankCode, int amount)
         {
             // form a transaction request message
             JsonObjectCollection message = new JsonObjectCollection();

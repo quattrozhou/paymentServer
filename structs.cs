@@ -26,6 +26,8 @@ namespace PaymentServer
         ERROR_TRANSACTION_HISTORY_GET_PROFILE = 8,
         ERROR_TRANSACTION_HISTORY_UPDATE = 9,
         SUCC_TRANSACTION_HISTORY_UPDATE = 10,
+        ERROR_CREATE_PROFILE_USERNAME_EXISTS = 11,
+        ERROR_CREATE_PROFILE_EMAIL_EXISTS = 12,
         //all new codes should be placed above this line
         ERROR_CREATE_PROFILE_MAX
     };
@@ -37,7 +39,7 @@ namespace PaymentServer
         OUT_CODE_LOGIN_SUCCESS = 0,
         OUT_CODE_LOGIN_FAILURE = 1,
         OUT_CODE_SIGN_UP_SUCCESS = 2,
-        OUT_CODE_SIGN_UP_FAILURE = 3,
+        OUT_CODE_SIGN_UP_FAILURE= 3,
         OUT_CODE_SEND_USER_PROFILE_SUCCESS = 4,
         OUT_CODE_SEND_USER_PROFILE_FAILURE = 5,
         OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS = 6,
@@ -120,7 +122,9 @@ namespace PaymentServer
         FROM_BANK_LOGIN_NACK = 2,
         FROM_BANK_TRANSACTION_ACK = 3,
         FROM_BANK_TRANSACTION_NACK = 4,
-        ERROR_BEFORE_CONTACT_BANK = 99,
+        ERROR_BEFORE_CONTACT_BANK = 90,
+        ERROR_AUTHENDICATION_CUSTOMER = 91,
+        ERROR_AUTHENDICATION_MERCHANT = 92,
         // all new codes should be placed above this line
         FROM_BANK_CODE_MAX
     };
@@ -130,12 +134,12 @@ namespace PaymentServer
         public DateTime time;
         public string customerName;
         public string merchantName;
-        public double amount;
+        public string amount;
         public Boolean isRefund;
         public FromBankServerMessageTypes status;
         public string transactionMessage;
         public string receiptNumber;
-        public int userNo;
+        // public int userNo;
 
         public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, double a)
         {
@@ -147,7 +151,7 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
-            userNo = 0;
+            // userNo = 0;
         }
 
         public transactionRecord(DateTime d, string cn, string mn, double a)
@@ -160,7 +164,7 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
-            userNo = 0;
+            // userNo = 0;
         }
 
         public transactionRecord()
@@ -173,7 +177,7 @@ namespace PaymentServer
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
             transactionMessage = "";
             receiptNumber = "";
-            userNo = 0;
+            // userNo = 0;
         }
 
         public string MyToString()
@@ -183,10 +187,10 @@ namespace PaymentServer
                 " payee: " + merchantName +
                 " amount: " + amount +
                 " isRefund: " + isRefund +
-                " status: " + (int) status +
+                " status: " + (int)status +
                 " message: " + transactionMessage +
-                " receiptNumber: " + receiptNumber +
-                " userNo: " + userNo;
+                " receiptNumber: " + receiptNumber;
+                // " userNo: " + userNo;
         }
     }
 

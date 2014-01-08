@@ -42,30 +42,93 @@ namespace PaymentServer
          */
         public static ResultCodeType createNewProfile(paymentServer_dataBase DBHandler, UserProfile P)
         {
-            if (DBHandler.Count("*", "userProfile WHERE email='" + P.email + "'") == 0)
-            {
-                string profile = "userProfile";
-                string items = "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
-                    "occupation, SIN, address1, address2, city, province, country, postalCode, phoneNumber, receiveCommunication, " +
-                    "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString)";
-                string values = "('" + P.userNo + "','" + P.username + "', '" + P.email + "', '" + P.password + "', '" + P.userType + "', '" + P.firstName + "', '" + P.lastName + "', '" +
-                    P.middleName + "', '" + P.DOBDay + "', '" + P.DOBMonth + "', '" + P.DOBYear + "', '" + P.occupation + "', '" + P.SIN + "', '" + P.address1 + "', '" +
-                    P.address2 + "', '" + P.city + "', '" + P.province + "', '" + P.country + "', '" + P.postalCode + "', '" + P.phoneNumber + "', '" + P.receiveCommunication + "', '" +
-                    P.bankCode + "', '" + P.accountNum + "', '" + P.accountPWD + "', '" + P.acctBalance + "', '" + P.transactionHistory + "', '" + P.POSHWID + "', '" +
-                    P.currentDK + "', '" + P.nextDK + "', '" + P.authenticationString + "')";
+            /// check if this username is taken
+            int count = DBHandler.Count("*", "userProfile WHERE username='" + P.username + "'");
+            if (count != 0)
+                return ResultCodeType.ERROR_CREATE_PROFILE_USERNAME_EXISTS;
 
-                DBHandler.Insert(profile, items, values);
-                DBHandler.Insert("authenticationList", "(authenticationString)", "('"+P.authenticationString+"')");
+            /// check if this email is taken
+            count = DBHandler.Count("*", "userProfile WHERE email='" + P.email + "'");
+            if (count != 0)
+                return ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS;
 
-                return ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS;
-            }
+            /// create a new profile in the database
+            string profile = "userProfile";
+            string items = "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
+                "occupation, SIN, address1, address2, city, province, country, postalCode, phoneNumber, receiveCommunication, " +
+                "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString)";
+            string values = "('" + P.userNo + "','" + P.username + "', '" + P.email + "', '" + P.password + "', '" + P.userType + "', '" + P.firstName + "', '" + P.lastName + "', '" +
+                P.middleName + "', '" + P.DOBDay + "', '" + P.DOBMonth + "', '" + P.DOBYear + "', '" + P.occupation + "', '" + P.SIN + "', '" + P.address1 + "', '" +
+                P.address2 + "', '" + P.city + "', '" + P.province + "', '" + P.country + "', '" + P.postalCode + "', '" + P.phoneNumber + "', '" + P.receiveCommunication + "', '" +
+                P.bankCode + "', '" + P.accountNum + "', '" + P.accountPWD + "', '" + P.acctBalance + "', '" + P.transactionHistory + "', '" + P.POSHWID + "', '" +
+                P.currentDK + "', '" + P.nextDK + "', '" + P.authenticationString + "')";
 
-            else
-            {
-                return ResultCodeType.ERROR_CREATE_PROFILE_ACCOUNT_EXISTS;
-            }
+            DBHandler.Insert(profile, items, values);
+            DBHandler.Insert("authenticationList", "(authenticationString)", "('" + P.authenticationString + "')");
+
+            return ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS;
         }
 
+        /// <summary>
+        /// get user profile from database, search by username
+        /// </summary>
+        /// <param name="DBHandler"></param>
+        /// <param name="userNo"></param>
+        /// <returns></returns>
+        public static GetProfileResultType getUserProfileByUsername(paymentServer_dataBase DBHandler, string username)
+        {
+            GetProfileResultType reply = new GetProfileResultType();
+            reply.status = ResultCodeType.ERROR_UNKNOWN;
+
+            List<string>[] list = DBHandler.Select("userProfile", "username", "" + username);
+            if (list.Length == 1)
+            {
+                if (list[0].Count() == (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS)
+                {
+                    string String = "";
+                    int Int = 1;
+                    bool Bool = false;
+                    double Double = 0.1;
+
+                    object Profile = new UserProfile();
+                    PropertyInfo[] properties = Profile.GetType().GetProperties();
+                    int i;
+                    for (i = 0; i < properties.Length; i++)
+                    {
+                        Console.WriteLine(properties[i].GetValue(Profile, null).ToString());
+                        if (properties[i].GetType() == String.GetType())
+                        {
+                            properties[i].SetValue(Profile, (string)list[0][i], null);
+
+                        }
+                        else if (properties[i].GetType() == Double.GetType())
+                        {
+                            properties[i].SetValue(Profile, Convert.ToDouble(list[0][i]), null);
+                        }
+                        else if (properties[i].GetType() == Int.GetType())
+                        {
+                            properties[i].SetValue(Profile, Convert.ToInt32(list[0][i]), null);
+
+                        }
+                        else if (properties[i].GetType() == Bool.GetType())
+                        {
+                            properties[i].SetValue(Profile, Convert.ToBoolean(list[0][i]), null);
+                        }
+                        reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
+                        reply.profile = (UserProfile)Profile;
+                    }
+                }
+                else
+                {
+                    // Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {}, Expected: {}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
+                }
+            }
+            else
+            {
+                Console.WriteLine("ServerWorker::getUserProfile - Error: Database query returned more than one record. Number Received: {}", list.Length);
+            }
+            return reply;
+        }
 
          /*
          * Get user profile

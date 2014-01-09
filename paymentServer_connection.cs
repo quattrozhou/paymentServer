@@ -325,8 +325,8 @@ namespace PaymentServer
 
             UserProfile p = new UserProfile();
             // p.userNo = 555;
-            p.username = "user3";
-            p.email = "u3@g.com";
+            p.username = "user4";
+            p.email = "u4@g.com";
             p.password = "passw3";
             p.userType = "cu";
             p.firstName = "chang2";
@@ -335,7 +335,21 @@ namespace PaymentServer
             p.DOBDay = 1999;
             p.DOBMonth = 12;
             p.DOBDay = 15;
-            p.transactionHistory = "";
+            p.transactionHistory = "0";
+            p.occupation = "1";
+            p.address1 = "1";
+            p.address2 = "2";
+            p.city = "c";
+            p.province = "p";
+            p.country = "c";
+            p.postalCode = "pc";
+            p.bankCode = "0123";
+            p.accountNum = "123456";
+            p.accountPWD = "qwerty";
+            p.currentDK = "cdk";
+            p.nextDK = "ndk";
+            p.authenticationString = "user3passw3";
+
 
             // paymentServer_requestWorker.createNewProfile(DBHandler, p);
 
@@ -355,7 +369,7 @@ namespace PaymentServer
             // Console.WriteLine(list[0]);*/
 
 
-            GetProfileResultType result = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, "user1");
+            GetProfileResultType result = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, "user4");
             Console.WriteLine("result.status: " + result.status);
 
             /*transactionRecord tr = new transactionRecord();

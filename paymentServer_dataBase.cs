@@ -260,6 +260,59 @@ namespace PaymentServer
             return itemFound;
         }
 
+        public List<string>[] Select(string table, string column, string value)
+        {
+            // string query = "SELECT * FROM " + table + " WHERE " + column + "='" + value + "'";
+            string query = "SELECT occupation FROM userprofile WHERE username='user1'";
+
+            //Create a list to store the result
+            int numRecords = Count("*", table);
+            List<string>[] list = new List<string>[numRecords];
+            for (int i = 0; i > numRecords; i++)
+            {
+                list[i] = new List<string>();
+            }
+
+            list[0] = new List<string>();
+
+            //Open connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                int numReads = 0;
+                while (dataReader.Read())
+                {
+                    // string str = ""+dataReader[numReads].ToString();
+                    string str = "" + dataReader.GetString(0);
+                    Console.WriteLine("str: "+str);
+                    list[0].Add(str + "");
+                    numReads++;
+                }
+                if (numReads != numRecords)
+                {
+                    Console.WriteLine("MySQLDataHandler::Select - Warning! {0} columns expected, but only {1} were read", numRecords, numReads);
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+
+                //return list to be displayed
+                return list;
+            }
+            else
+            {
+                return list;
+            }
+        }
+
         //Select statement
         public List<string>[] Select2(string table, string column, string value)
         {

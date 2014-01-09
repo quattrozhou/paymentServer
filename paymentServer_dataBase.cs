@@ -261,7 +261,7 @@ namespace PaymentServer
         }
 
         //Select statement
-        public List<string>[] Select(string table, string column, string value)
+        public List<string>[] Select2(string table, string column, string value)
         {
             string query = "SELECT * FROM " +table+ " WHERE " +column+ "='" + value + "'";
 
@@ -290,9 +290,11 @@ namespace PaymentServer
                 //Read the data and store them in the list
                 int numReads = 0;
                 string read = "";
-                while (dataReader.Read())
+                // while (dataReader.Read())
+                for(int i = 0 ; i < 33 ; i ++)
                 {
-                    Console.WriteLine(""+dataReader.GetInt32(0) + ": " + dataReader.GetString(1));
+                    Console.WriteLine("i1: "+dataReader.Read());
+                    Console.WriteLine("i2: "+dataReader.GetString(0));
 
                     /*if (dataReader[numReads] != null)
                         read = ""+dataReader[numReads].ToString();

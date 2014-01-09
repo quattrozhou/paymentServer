@@ -90,7 +90,7 @@ namespace PaymentServer
             if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS)
             {
                 Console.WriteLine("ServerWorker::getUserProfile - Error: Did not receive extpected number of data items from server. Received: {0}, Expected: {1}", list[0].Count(), (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS);
-                Console.WriteLine("list[0]: "+list[0][0]+" list[0]size: "+list[0].Count);
+                // Console.WriteLine("list[0]: "+list[0][0]+" list[0]size: "+list[0].Count);
                 return reply;
             }
 

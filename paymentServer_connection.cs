@@ -325,13 +325,13 @@ namespace PaymentServer
 
             UserProfile p = new UserProfile();
             // p.userNo = 555;
-            p.username = "usernamex1";
-            p.email = "u@g.com";
-            p.password = "passw";
+            p.username = "user3";
+            p.email = "u3@g.com";
+            p.password = "passw3";
             p.userType = "cu";
-            p.firstName = "chang";
-            p.middleName = "m";
-            p.lastName = "zhou";
+            p.firstName = "chang2";
+            p.middleName = "m2";
+            p.lastName = "zhou2";
             p.DOBDay = 1999;
             p.DOBMonth = 12;
             p.DOBDay = 15;
@@ -355,7 +355,7 @@ namespace PaymentServer
             // Console.WriteLine(list[0]);*/
 
 
-            GetProfileResultType result = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, "usernamex1");
+            GetProfileResultType result = paymentServer_requestWorker.getUserProfileByUsername(DBHandler, "user1");
             Console.WriteLine("result.status: " + result.status);
 
             /*transactionRecord tr = new transactionRecord();

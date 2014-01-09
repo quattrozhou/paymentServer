@@ -123,7 +123,7 @@ namespace PaymentServer
             try
             {
                 connection.Open();
-                Console.WriteLine("Connected to database server.");
+                // Console.WriteLine("Connected to database server.");
                 return true;
             }
             catch (MySqlException ex)
@@ -262,8 +262,7 @@ namespace PaymentServer
 
         public List<string>[] Select(string table, string column, string value)
         {
-            // string query = "SELECT * FROM " + table + " WHERE " + column + "='" + value + "'";
-            string query = "SELECT occupation FROM userprofile WHERE username='user1'";
+            string query = "SELECT * FROM " + table + " WHERE " + column + "='" + value + "'";
 
             //Create a list to store the result
             int numRecords = Count("*", table);
@@ -272,8 +271,6 @@ namespace PaymentServer
             {
                 list[i] = new List<string>();
             }
-
-            list[0] = new List<string>();
 
             //Open connection
             if (this.OpenConnection() == true)
@@ -287,10 +284,7 @@ namespace PaymentServer
                 int numReads = 0;
                 while (dataReader.Read())
                 {
-                    // string str = ""+dataReader[numReads].ToString();
-                    string str = "" + dataReader.GetString(0);
-                    Console.WriteLine("str: "+str);
-                    list[0].Add(str + "");
+                    list[numReads].Add(dataReader[numReads] + "");
                     numReads++;
                 }
                 if (numReads != numRecords)
@@ -314,51 +308,58 @@ namespace PaymentServer
         }
 
         //Select statement
-        public List<string>[] Select2(string table, string column, string value)
+        public List<string> mySelect(string table, string column, string value)
         {
-            string query = "SELECT * FROM " +table+ " WHERE " +column+ "='" + value + "'";
+            string[] columns = {
+                        "userNo", 
+                        "email", 
+                        "username", 
+                        "password", 
+                        "userType", 
+                        "firstName", 
+                        "middleName", 
+                        "lastName", 
+                        "DOBDay", 
+                        "DOBMonth", 
+                        "DOBYear",
+                        "occupation", 
+                        "SIN", 
+                        "address1", 
+                        "address2", 
+                        "city", 
+                        "province", 
+                        "country", 
+                        "postalCode", 
+                        "phoneNumber", 
+                        "receiveCommunication",
+                        "bankCode", 
+                        "accountNum", 
+                        "accountPWD", 
+                        "acctBalance", 
+                        "transactionHistory", 
+                        "POSHWID", 
+                        "currentDK", 
+                        "nextDK", 
+                        "authenticationString"};
+                        // "createTime"};
 
-            int colSize = (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS;
+            List<string> list = new List<string>();
 
-            //Create a list to store the result
-            int numRecords = Count("*", table);
-            Console.WriteLine("numRecords: "+numRecords);
-            List<string> [] list = new List<string> [numRecords];
-            
-            // string[] stra = new string[colSize];
-            
-            for (int i = 0; i < numRecords; i++)
+            for (int i = 0; i < columns.Length; i++)
             {
-                list[i] = new List<string>();
-            }
+                string query = "SELECT " + columns[i] + " FROM " + table + " WHERE " + column + "='" + value + "'";
 
-            //Open connection
-            if (this.OpenConnection() == true)
-            {
-                //Create Command
+                if (this.OpenConnection() != true)
+                    return list;
+
                 MySqlCommand cmd = new MySqlCommand(query, connection);
-                //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
-                //Read the data and store them in the list
-                int numReads = 0;
-                string read = "";
-                // while (dataReader.Read())
-                for(int i = 0 ; i < 33 ; i ++)
+                while (dataReader.Read())
                 {
-                    Console.WriteLine("i1: "+dataReader.Read());
-                    Console.WriteLine("i2: "+dataReader.GetString(0));
-
-                    /*if (dataReader[numReads] != null)
-                        read = ""+dataReader[numReads].ToString();
-                    Console.WriteLine(list[0].Count + " "+numReads+" "+read);
-                    list[0].Add(read);
-                    numReads++;
-                    read = "EMPTY_SPACE";*/
-                }
-                if (numReads != numRecords)
-                {
-                    // Console.WriteLine("MySQLDataHandler::Select - Warning! {0} columns expected, but only {1} were read", numRecords, numReads);
+                    string read = dataReader.GetString(0) + "";
+                    list.Add(read);
+                    // Console.WriteLine(columns[i]+": "+read);
                 }
 
                 //close Data Reader
@@ -366,14 +367,8 @@ namespace PaymentServer
 
                 //close Connection
                 this.CloseConnection();
-
-                //return list to be displayed
-                return list;
             }
-            else
-            {
-                return list;
-            }
+            return list;
         }
 
         //Backup

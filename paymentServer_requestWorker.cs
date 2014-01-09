@@ -45,13 +45,19 @@ namespace PaymentServer
             /// check if this username is taken
             int count = DBHandler.Count("*", "userProfile WHERE username='" + P.username + "'");
             if (count != 0)
+            {
+                Console.WriteLine("ResultCodeType.ERROR_CREATE_PROFILE_USERNAME_EXISTS");
                 return ResultCodeType.ERROR_CREATE_PROFILE_USERNAME_EXISTS;
-
+            }
+                
             /// check if this email is taken
             count = DBHandler.Count("*", "userProfile WHERE email='" + P.email + "'");
             if (count != 0)
+            {
+                Console.WriteLine("ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS");
                 return ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS;
-
+            }
+                
             /// create a new profile in the database
             string profile = "userProfile";
             string items = "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
@@ -129,6 +135,27 @@ namespace PaymentServer
                 reply.profile = (UserProfile)Profile;
             }
             
+            return reply;
+        }
+
+        /// <summary>
+        /// get user profile from database, search by username
+        /// </summary>
+        /// <param name="DBHandler"></param>
+        /// <param name="userNo"></param>
+        /// <returns></returns>
+        public static GetProfileResultType MYgetUserProfileByUsername(paymentServer_dataBase DBHandler, string username)
+        {
+            GetProfileResultType reply = new GetProfileResultType();
+            reply.status = ResultCodeType.ERROR_UNKNOWN;
+
+            List<string> list = DBHandler.mySelect("userProfile", "username", "" + username);
+
+            UserProfile Profile = new UserProfile(list);
+
+            reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
+            reply.profile = (UserProfile)Profile;
+
             return reply;
         }
 

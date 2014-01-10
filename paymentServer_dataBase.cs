@@ -264,8 +264,9 @@ namespace PaymentServer
             }
         }
 
-        //Select statement
-        public List<string> mySelect(string table, string column, string value)
+        /// select a row in userProfile table, based on username specified
+        /// return a list of string of the values
+        public List<string> selectWholeRow(string username)
         {
             string[] columns = {
                         "userNo", 
@@ -304,7 +305,7 @@ namespace PaymentServer
 
             for (int i = 0; i < columns.Length; i++)
             {
-                list.Add(selectColumn(table, column, value, columns[i]));
+                list.Add(selectColumn("userProfile", "username", username, columns[i]));
             }
             return list;
         }
@@ -374,7 +375,7 @@ namespace PaymentServer
             }
             catch (IOException ex)
             {
-                Console.WriteLine("Error , unable to backup!");
+                Console.WriteLine("Error , unable to backup!"+ex.ToString());
             }
         }
 
@@ -407,7 +408,7 @@ namespace PaymentServer
             }
             catch (IOException ex)
             {
-                Console.WriteLine("Error , unable to Restore!");
+                Console.WriteLine("Error , unable to Restore!"+ex.ToString());
             }
         }
 

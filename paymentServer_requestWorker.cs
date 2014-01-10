@@ -27,10 +27,10 @@ namespace PaymentServer
             }
             //JT:HACK End */
 
-            if (DBHandler.Count("*", "authenticationList WHERE authenticationString='" + authenticationString + "'") == 1)
+            if (count == 1)
             {
                 Console.WriteLine("ServerWorker::authenticateUser - User authenticated with {0}", authenticationString);
-                DBHandler.Backup();
+                // DBHandler.Backup();
                 return true;
             }
             Console.WriteLine("ServerWorker::authenticateUser - Could not authenticate user. DB Query returned count of {0}", count);
@@ -60,14 +60,8 @@ namespace PaymentServer
                 
             /// create a new profile in the database
             string profile = "userProfile";
-            string items = "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
-                "occupation, SIN, address1, address2, city, province, country, postalCode, phoneNumber, receiveCommunication, " +
-                "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString)";
-            string values = "('" + P.userNo + "','" + P.username + "', '" + P.email + "', '" + P.password + "', '" + P.userType + "', '" + P.firstName + "', '" + P.lastName + "', '" +
-                P.middleName + "', '" + P.DOBDay + "', '" + P.DOBMonth + "', '" + P.DOBYear + "', '" + P.occupation + "', '" + P.SIN + "', '" + P.address1 + "', '" +
-                P.address2 + "', '" + P.city + "', '" + P.province + "', '" + P.country + "', '" + P.postalCode + "', '" + P.phoneNumber + "', '" + P.receiveCommunication + "', '" +
-                P.bankCode + "', '" + P.accountNum + "', '" + P.accountPWD + "', '" + P.acctBalance + "', '" + P.transactionHistory + "', '" + P.POSHWID + "', '" +
-                P.currentDK + "', '" + P.nextDK + "', '" + P.authenticationString + "')";
+            string items = P.getDatabaseColumnList();
+            string values = P.getDatabaseValueList();
 
             DBHandler.Insert(profile, items, values);
             DBHandler.Insert("authenticationList", "(authenticationString)", "('" + P.authenticationString + "')");
@@ -81,7 +75,76 @@ namespace PaymentServer
         /// <param name="DBHandler"></param>
         /// <param name="userNo"></param>
         /// <returns></returns>
-        public static GetProfileResultType getUserProfileByUsername(paymentServer_dataBase DBHandler, string username)
+        public static GetProfileResultType MYgetUserProfileByUsername
+            (paymentServer_dataBase DBHandler, string username)
+        {
+            GetProfileResultType reply = new GetProfileResultType();
+            reply.status = ResultCodeType.ERROR_UNKNOWN;
+
+            int count = DBHandler.Count("*", "userProfile WHERE username='" + username + "'");
+
+            if (count != 1)
+            {
+                Console.WriteLine("ERROR - MYgetUserProfileByUsername!"+
+                    "Trying to get user profile, found " + count + " profiles match username");
+                return reply;
+            }
+
+            List<string> list = DBHandler.selectWholeRow("" + username);
+
+            UserProfile Profile = new UserProfile(list);
+
+            reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
+            reply.profile = (UserProfile)Profile;
+
+            return reply;
+        }
+
+        /// <summary>
+        /// put transaction record into database
+        /// </summary>
+        /// <param name="DBHandler"></param>
+        /// <param name="tr"></param>
+        /// <returns>
+        /// Transaction ID (assigned by database)
+        /// </returns>
+        public static int addNewTransactionRecord
+            (paymentServer_dataBase DBHandler, transactionRecord tr)
+        {
+            string profile = "transactionhistory";
+            string items = tr.getDatabaseColumnList();
+            string values = tr.getDatabaseValueList();
+            DBHandler.Insert(profile, items, values);
+            string result = DBHandler.selectColumn(profile, "receiptNumber", tr.receiptNumber, "transactionNo");
+            try
+            {
+                int tid = Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return 0;
+        }
+
+        public static ResultCodeType updateBalance(paymentServer_dataBase DBHandler, string username, int balance)
+        {
+            ResultCodeType res = new ResultCodeType();
+            res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
+
+            DBHandler.Update("userProfile", "acctBalance = " + balance + "", "username = '" + username+"'");
+
+            res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
+            return res;
+        }
+
+        /// <summary>
+        /// get user profile from database, search by username
+        /// </summary>
+        /// <param name="DBHandler"></param>
+        /// <param name="userNo"></param>
+        /// <returns></returns>
+        /*public static GetProfileResultType getUserProfileByUsername(paymentServer_dataBase DBHandler, string username)
         {
             GetProfileResultType reply = new GetProfileResultType();
             reply.status = ResultCodeType.ERROR_UNKNOWN;
@@ -136,38 +199,7 @@ namespace PaymentServer
             }
             
             return reply;
-        }
-
-        /// <summary>
-        /// get user profile from database, search by username
-        /// </summary>
-        /// <param name="DBHandler"></param>
-        /// <param name="userNo"></param>
-        /// <returns></returns>
-        public static GetProfileResultType MYgetUserProfileByUsername(paymentServer_dataBase DBHandler, string username)
-        {
-            GetProfileResultType reply = new GetProfileResultType();
-            reply.status = ResultCodeType.ERROR_UNKNOWN;
-
-            List<string> list = DBHandler.mySelect("userProfile", "username", "" + username);
-
-            UserProfile Profile = new UserProfile(list);
-
-            reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
-            reply.profile = (UserProfile)Profile;
-
-            return reply;
-        }
-
-        public static int addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
-        {
-            string profile = "transactionhistory";
-            string items = tr.getDatabaseColumnList();
-            string values = tr.getDatabaseValueList();
-            DBHandler.Insert(profile, items, values);
-            string result = DBHandler.selectColumn(profile, "receiptNumber", tr.receiptNumber, "transactionNo");
-            return Convert.ToInt32(result);
-        }
+        }*/
 
          /*
          * Get user profile

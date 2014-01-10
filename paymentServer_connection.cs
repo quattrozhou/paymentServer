@@ -325,7 +325,7 @@ namespace PaymentServer
 
             UserProfile p = new UserProfile();
             // p.userNo = 555;
-            p.username = "user7";
+            p.username = "user8";
             p.email = "a2@g.com";
             p.password = "passw3";
             p.userType = "cu";
@@ -370,8 +370,11 @@ namespace PaymentServer
 
             int now = DateTime.Now.Second * 1000 + DateTime.Now.Millisecond;
 
-            GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, "user7");
+            GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, "user8");
             Console.WriteLine("result.status: " + result.status);
+            Console.WriteLine("result.accountNum: " + result.profile.accountNum);
+            Console.WriteLine("result.accountPWD: " + result.profile.accountPWD);
+            Console.WriteLine("result.authenticationString: " + result.profile.authenticationString);
 
             int now2 = DateTime.Now.Second * 1000 + DateTime.Now.Millisecond - now;
             Console.WriteLine(now2);

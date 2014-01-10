@@ -185,14 +185,32 @@ namespace PaymentServer
             this.nextDK = input[28];          
             this.authenticationString = input[29];
             // this.createTime = input[30];
+        }
 
+        public string getDatabaseColumnList()
+        {
+            return "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
+                "occupation, SIN, address1, address2, city, province, country, postalCode, phoneNumber, receiveCommunication, " +
+                "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString)";
+        }
+
+        public string getDatabaseValueList()
+        {
+            return "('" + this.userNo + "','" + this.username + "', '" + this.email + "', '" + this.password + "', '" +
+                this.userType + "', '" + this.firstName + "', '" + this.lastName + "', '" +this.middleName + "', '" + 
+                this.DOBDay + "', '" + this.DOBMonth + "', '" + this.DOBYear + "', '" + this.occupation + "', '" + 
+                this.SIN + "', '" + this.address1 + "', '" + this.address2 + "', '" + this.city + "', '" + 
+                this.province + "', '" + this.country + "', '" +this.postalCode + "', '" + this.phoneNumber + "', '" + 
+                this.receiveCommunication + "', '" + this.bankCode + "', '" + this.accountNum + "', '" + 
+                this.accountPWD + "', '" + this.acctBalance + "', '" +this.transactionHistory + "', '" + 
+                this.POSHWID + "', '" +this.currentDK + "', '" + this.nextDK + "', '" + this.authenticationString + "')";
         }
     };
 
     public struct TransactionResult
     {
         public FromBankServerMessageTypes status;
-        public string transactionMessage;
+        public string bankReplyMessage;
         public string receiptNumber;
         public string payerBalance;
         public string payeeBalance;

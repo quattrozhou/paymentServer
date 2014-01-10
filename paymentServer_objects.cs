@@ -258,20 +258,20 @@ namespace PaymentServer
     class transactionRecord
     {
         public DateTime time;
-        public string customerName;
-        public string merchantName;
+        public string customerUsername;
+        public string merchantUsername;
         public string amount;
         public Boolean isRefund;
         public FromBankServerMessageTypes status;
         public string transactionMessage;
         public string receiptNumber;
-        public int userNo;
+        // public int userNo;
 
         public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, string a)
         {
             this.time = new DateTime(y, m, d, h, min, s);
-            this.customerName = cn;
-            this.merchantName = mn;
+            this.customerUsername = cn;
+            this.merchantUsername = mn;
             this.amount = a;
             isRefund = false;
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
@@ -283,8 +283,8 @@ namespace PaymentServer
         public transactionRecord(DateTime d, string cn, string mn, string a)
         {
             this.time = d;
-            this.customerName = cn;
-            this.merchantName = mn;
+            this.customerUsername = cn;
+            this.merchantUsername = mn;
             this.amount = a;
             isRefund = false;
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
@@ -296,8 +296,8 @@ namespace PaymentServer
         public transactionRecord()
         {
             time = new DateTime();
-            customerName = "";
-            merchantName = "";
+            customerUsername = "";
+            merchantUsername = "";
             amount = "0";
             isRefund = false;
             status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
@@ -309,8 +309,8 @@ namespace PaymentServer
         public string MyToString()
         {
             return "" + time.ToString() +
-                " payer: " + customerName +
-                " payee: " + merchantName +
+                " payer: " + customerUsername +
+                " payee: " + merchantUsername +
                 " amount: " + amount +
                 " isRefund: " + isRefund +
                 " status: " + (int)status +
@@ -329,7 +329,7 @@ namespace PaymentServer
         {
             return "('" + this.time.Year + "','" + this.time.Month + "','" + this.time.Day + "','" +
                 this.time.Hour + "','" + this.time.Minute + "','" + this.time.Second + "','" +
-                this.customerName + "','" + this.merchantName +
+                this.customerUsername + "','" + this.merchantUsername +
                 "','" + this.amount + "','" + booleanToInt(this.isRefund) + 
                 "','" + (int)(this.status) + "','" +
                 this.transactionMessage + "','" + this.receiptNumber + "')";

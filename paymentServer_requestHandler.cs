@@ -656,7 +656,7 @@ namespace PaymentServer
                         transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", transactionIDT));
                         transactions = insert(transactions, amount, new JsonNumericValue("amount", Convert.ToInt32(tamount)));
                         transactions = insert(transactions, isRefund, new JsonBooleanValue("isRefund", isRefundT));
-                        transactions = insert(transactions, balance, new JsonNumericValue("balance", (int)1));
+                        transactions = insert(transactions, balance, new JsonNumericValue("balance", Convert.ToInt32(remainBalance)));
                         transactions = insert(transactions, receiptNo, new JsonStringValue("receiptNo", trecode.receiptNumber));
                         transactions = insert(transactions, merchantID, new JsonNumericValue("merchantID", (int)1));
                         transactions = insert(transactions, transactionMessage, new JsonStringValue("transactionMessage", ""));

@@ -110,7 +110,7 @@ namespace PaymentServer
 
     public class UserProfile
     {
-        // DO NOT CHANGE ORDER, if need add any thing, please add to the end of each field
+        // DO NOT CHANGE ORDER, if need add any thing, please add to the end of other field
         public int userNo;
         public string email;
         public string username;
@@ -148,7 +148,7 @@ namespace PaymentServer
 
         public UserProfile(List <string> input)
         {
-            if (input.Count < 30)
+            if (input.Count != 30)
                 return;
 
             this.userNo = Convert.ToInt32(input[0]);

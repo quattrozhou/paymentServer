@@ -7,49 +7,10 @@ using System.Diagnostics;
 using System.IO;
 using MySql.Data.MySqlClient;
 
-//define user profile data structure
-//THIS ENUMERATION MUST ALIGN WITH THE CURRENT DATABASE MODEL
-//DO NOT ADD OR MODIFY THIS ENUM UNLESS THE DATABASE MODEL HAS BEEN MODIFIED ACCORDINGLY
-//DOING SO WILL YIELD CATASTROPHIC RESULTS
-public enum UserProfileEnum
-{
-    userNo = 0,
-    email = 1,
-    username = 2,
-    password = 3,
-    userType = 4,
-    firstName = 5,
-    middleName = 6,
-    lastName = 7,
-    DOBDay = 8,
-    DOBMonth = 9,
-    DOBYear = 10,
-    occupation = 11,
-    SIN = 12,
-    address1 = 13,
-    address2 = 14,
-    city = 15,
-    province = 16,
-    country = 17,
-    postalCode = 18,
-    phoneNumber = 19,
-    receiveCommunication = 20,
-    bankCode = 21,             //base64-encoded
-    accountNum = 22,          //base64-encoded
-    accountPWD = 23,      //base64-encoded
-    acctBalance = 24,          //base64-encoded
-    transactionHistory = 25,
-    POSHWID = 26,
-    currentDK = 27,            //base64-encoded
-    nextD = 28,              //base64-encoded
-    authenticationString = 29,  //base64-encoded
-    createTime = 30,
-    //All additions sould come above this line
-    NUM_PROFILE_DATA_ITEMS
-}
+
 
 //define user profile data structure
-public struct UserProfile
+/*public struct UserProfile
 {
     public int userNo;
     public string email;
@@ -82,11 +43,7 @@ public struct UserProfile
     public string nextDK;               //base64-encoded
     public string authenticationString;  //base64-encoded
     public string createTime;
-};
-
-public struct transaction{
-
-};
+};*/
 
 namespace PaymentServer
 {
@@ -347,28 +304,36 @@ namespace PaymentServer
 
             for (int i = 0; i < columns.Length; i++)
             {
-                string query = "SELECT " + columns[i] + " FROM " + table + " WHERE " + column + "='" + value + "'";
-
-                if (this.OpenConnection() != true)
-                    return list;
-
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                MySqlDataReader dataReader = cmd.ExecuteReader();
-
-                while (dataReader.Read())
-                {
-                    string read = dataReader.GetString(0) + "";
-                    list.Add(read);
-                    // Console.WriteLine(columns[i]+": "+read);
-                }
-
-                //close Data Reader
-                dataReader.Close();
-
-                //close Connection
-                this.CloseConnection();
+                list.Add(selectColumn(table, column, value, columns[i]));
             }
             return list;
+        }
+
+        public string selectColumn(string table, string searchColumn, string value, string resultColumn)
+        {
+            string query = "SELECT " + resultColumn + " FROM " + table + " WHERE " + searchColumn + "='" + value + "'";
+
+            string result = "";
+
+            if (this.OpenConnection() != true)
+                return result;
+
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            MySqlDataReader dataReader = cmd.ExecuteReader();
+
+            while (dataReader.Read())
+            {
+                result = dataReader.GetString(0) + "";
+                // Console.WriteLine(columns[i]+": "+read);
+            }
+
+            //close Data Reader
+            dataReader.Close();
+
+            //close Connection
+            this.CloseConnection();
+
+            return result;
         }
 
         //Backup

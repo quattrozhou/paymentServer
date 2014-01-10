@@ -22,8 +22,6 @@ namespace PaymentServer
 
     public class paymentServer_requestHandler
     {
-        
-
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
             paymentServer_dataBase DBHandler = new paymentServer_dataBase();
 
@@ -337,8 +335,8 @@ namespace PaymentServer
                         break;
                      
                     /*
-                     * handle new user sign-up request
-                     */ 
+                        * handle new user sign-up request
+                        */ 
                     case ((int)clientIncomingCodeEnum.IN_CODE_SIGN_UP_REQ):
                         UserProfile newProfile = new UserProfile();
 
@@ -539,7 +537,7 @@ namespace PaymentServer
                         // authentication costomer
                         if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString)) && !isRefundT)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE));
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Invalid customer username and passowrd combination"));
@@ -549,7 +547,7 @@ namespace PaymentServer
 
                             /// store transaction record
                             trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_CUSTOMER;
-                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
                             break;
                         }
 
@@ -557,7 +555,7 @@ namespace PaymentServer
                         // authentication merchant
                         if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString)) && isRefundT)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE));
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                             messageType = insert(messageType, details, new JsonStringValue("details", "Invalid merchant username and passowrd combination"));
@@ -567,7 +565,7 @@ namespace PaymentServer
 
                             /// store transaction record
                             trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_MERCHANT;
-                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
                             break;
                         }
 
@@ -584,7 +582,7 @@ namespace PaymentServer
 
                             trecode.transactionMessage = "error when look up customer info from database";
                             trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
@@ -609,7 +607,7 @@ namespace PaymentServer
 
                             trecode.transactionMessage = "error when look up merchant info from database";
                             trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-                            ResultCodeType dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
@@ -637,25 +635,31 @@ namespace PaymentServer
                         trecode.status = tresult.status;
                         trecode.transactionMessage = tresult.transactionMessage;
                         trecode.receiptNumber = tresult.receiptNumber;
-                        ResultCodeType dbr2 = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
-
+                        int transactionIDT = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                    
                         // -------------analyse bank server response------------------------------
                         if(tresult.status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_APPROVED));
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_SUCCESSFUL));
                         else
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_TRANSACTION_BANK_TRANSACTION_FAILED));
-                        
+                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
+
+                        string remainBalance = "";
+                        if (trecode.isRefund) // is refund, the customer is the payee
+                            remainBalance = tresult.payeeBalance;
+                        else // is refund, the customer is the payer
+                            remainBalance = tresult.payerBalance;
+
                         messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                         messageType = insert(messageType, details, new JsonStringValue(tresult.transactionMessage));
 
-                        transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, amount, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, isRefund, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, balance, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, receiptNo, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, merchantID, new JsonNumericValue("transactionID", (int)1));
-                        transactions = insert(transactions, transactionMessage, new JsonStringValue("transactionID", ""));
+                        transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", transactionIDT));
+                        transactions = insert(transactions, amount, new JsonNumericValue("amount", Convert.ToInt32(tamount)));
+                        transactions = insert(transactions, isRefund, new JsonBooleanValue("isRefund", isRefundT));
+                        transactions = insert(transactions, balance, new JsonNumericValue("balance", (int)1));
+                        transactions = insert(transactions, receiptNo, new JsonStringValue("receiptNo", trecode.receiptNumber));
+                        transactions = insert(transactions, merchantID, new JsonNumericValue("merchantID", (int)1));
+                        transactions = insert(transactions, transactionMessage, new JsonStringValue("transactionMessage", ""));
 
                         //build response message content from already defined JSON Objects                           
                         defineResponse.Insert(0, headers);

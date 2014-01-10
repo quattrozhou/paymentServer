@@ -159,13 +159,14 @@ namespace PaymentServer
             return reply;
         }
 
-        public static ResultCodeType addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
+        public static int addNewTransactionRecord(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             string profile = "transactionhistory";
             string items = tr.getDatabaseColumnList();
             string values = tr.getDatabaseValueList();
             DBHandler.Insert(profile, items, values);
-            return 0;
+            string result = DBHandler.selectColumn(profile, "receiptNumber", tr.receiptNumber, "transactionNo");
+            return Convert.ToInt32(result);
         }
 
          /*

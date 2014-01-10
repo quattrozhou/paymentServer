@@ -123,7 +123,7 @@
     <Compile Include="paymentServer_connection.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="structs.cs" />
+    <Compile Include="paymentServer_objects.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".git\objects\info\" />

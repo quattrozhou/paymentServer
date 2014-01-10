@@ -65,6 +65,8 @@ namespace PaymentServer
                 result.status = FromBankServerMessageTypes.FROM_BANK_CONNECTION_FAIL;
                 result.transactionMessage = "not available";
                 result.receiptNumber = "not available";
+                result.payerBalance = "not available";
+                result.payeeBalance = "not available";
                 return result;
             }
 
@@ -72,6 +74,8 @@ namespace PaymentServer
             result.status = (FromBankServerMessageTypes)(int)received.SelectToken("messageType");
             result.transactionMessage = (string)received.SelectToken("transactionMessage");
             result.receiptNumber = (string)received.SelectToken("receiptNumber");
+            result.payerBalance = (string)received.SelectToken("payerBalance");
+            result.payeeBalance = (string)received.SelectToken("payeeBalance");
 
             return result;
         }

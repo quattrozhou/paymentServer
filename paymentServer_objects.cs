@@ -42,13 +42,15 @@ namespace PaymentServer
         OUT_CODE_SIGN_UP_FAILURE= 3,
         OUT_CODE_SEND_USER_PROFILE_SUCCESS = 4,
         OUT_CODE_SEND_USER_PROFILE_FAILURE = 5,
-        OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS = 6,
+        OUT_CODE_PAYMENT_SUCCESSFUL = 6,
+        OUT_CODE_PAYMENT_FAILURE = 7,
+        /*OUT_CODE_TRANSACTION_CUSTOMER_AUTH_SUCCESS = 6,
         OUT_CODE_TRANSACTION_CUSTOMER_AUTH_FAILURE = 7,
         OUT_CODE_TRANSACTION_MERCHANT_AUTH_SUCCESS = 8,
         OUT_CODE_TRANSACTION_MERCHANT_AUTH_FAILURE = 9,
         OUT_CODE_TRANSACTION_BANK_NOT_ACCESSABLE = 10,
         OUT_CODE_TRANSACTION_BANK_TRANSACTION_APPROVED = 11,
-        OUT_CODE_TRANSACTION_BANK_TRANSACTION_FAILED = 12,
+        OUT_CODE_TRANSACTION_BANK_TRANSACTION_FAILED = 12,*/
         //all new codes should be placed above this line
         OUT_CODE_MAX
     };
@@ -64,6 +66,47 @@ namespace PaymentServer
         //all new codes should be placed above this line
         IN_CODE_MAX
     };
+
+    //define user profile data structure
+    //THIS ENUMERATION MUST ALIGN WITH THE CURRENT DATABASE MODEL
+    //DO NOT ADD OR MODIFY THIS ENUM UNLESS THE DATABASE MODEL HAS BEEN MODIFIED ACCORDINGLY
+    //DOING SO WILL YIELD CATASTROPHIC RESULTS
+    public enum UserProfileEnum
+    {
+        userNo = 0,
+        email = 1,
+        username = 2,
+        password = 3,
+        userType = 4,
+        firstName = 5,
+        middleName = 6,
+        lastName = 7,
+        DOBDay = 8,
+        DOBMonth = 9,
+        DOBYear = 10,
+        occupation = 11,
+        SIN = 12,
+        address1 = 13,
+        address2 = 14,
+        city = 15,
+        province = 16,
+        country = 17,
+        postalCode = 18,
+        phoneNumber = 19,
+        receiveCommunication = 20,
+        bankCode = 21,             //base64-encoded
+        accountNum = 22,          //base64-encoded
+        accountPWD = 23,      //base64-encoded
+        acctBalance = 24,          //base64-encoded
+        transactionHistory = 25,
+        POSHWID = 26,
+        currentDK = 27,            //base64-encoded
+        nextD = 28,              //base64-encoded
+        authenticationString = 29,  //base64-encoded
+        createTime = 30,
+        //All additions sould come above this line
+        NUM_PROFILE_DATA_ITEMS
+    }
 
     public class UserProfile
     {
@@ -151,10 +194,18 @@ namespace PaymentServer
         public FromBankServerMessageTypes status;
         public string transactionMessage;
         public string receiptNumber;
+        public string payerBalance;
+        public string payeeBalance;
     }
 
     public enum ToBankServerMessageTypes
     {
+        /*IN_CODE_INVALID = -1,
+        IN_CODE_SIGN_UP_REQ = 0,
+        IN_CODE_LOGIN_REQ = 1,
+        IN_CODE_PROCESS_PAYMENT_REQ = 2,
+        TO_BANK_CODE_MAX*/
+
         TO_BANK_SERVER_LOGIN = 1,
         TO_BANK_SERVER_TRANSACTION = 2,
         // all new codes should be placed above this line
@@ -163,14 +214,25 @@ namespace PaymentServer
 
     public enum FromBankServerMessageTypes
     {
-        FROM_BANK_CONNECTION_FAIL = 0,
-        FROM_BANK_LOGIN_ACK = 1,
-        FROM_BANK_LOGIN_NACK = 2,
-        FROM_BANK_TRANSACTION_ACK = 3,
-        FROM_BANK_TRANSACTION_NACK = 4,
+        /*OUT_CODE_INVALID = -1,
+        OUT_CODE_SIGN_UP_SUCCESS = 0,
+        OUT_CODE_SIGN_UP_FAILURE = 1,
+        OUT_CODE_LOGIN_SUCCESS = 2,
+        OUT_CODE_LOGIN_FAILURE = 3,
+        OUT_CODE_TRANSACTION_SUCCESS = 4,
+        OUT_CODE_TRANSACTION_FAILURE = 5,*/
+
+        FROM_BANK_CONNECTION_FAIL = -1,
+        FROM_BANK_LOGIN_ACK = 2,
+        FROM_BANK_LOGIN_NACK = 3,
+        FROM_BANK_TRANSACTION_ACK = 4,
+        FROM_BANK_TRANSACTION_NACK = 5,
+
+        //  for internal use only (when error happens before contact bank)
         ERROR_BEFORE_CONTACT_BANK = 90,
         ERROR_AUTHENDICATION_CUSTOMER = 91,
         ERROR_AUTHENDICATION_MERCHANT = 92,
+
         // all new codes should be placed above this line
         FROM_BANK_CODE_MAX
     };
@@ -264,7 +326,7 @@ namespace PaymentServer
         }
     }
 
-    class structs
+    class paymentServer_objects
     {
     }
 }

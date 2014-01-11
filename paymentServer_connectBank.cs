@@ -133,7 +133,7 @@ namespace PaymentServer
         public void connect()
         {
             // Create a request using a URL that can receive a post. 
-            //WebRequest request = WebRequest.Create("http://www.contoso.com/PostAccepter.aspx");
+            // WebRequest request = WebRequest.Create("http://www.contoso.com/PostAccepter.aspx");
             WebRequest request = WebRequest.Create("https://bankserver.dynu.com:443/");
 
             // Set the Method property of the request to POST.
@@ -153,7 +153,7 @@ namespace PaymentServer
                 // Write the data to the request stream.
                 dataStream.Write(byteArray, 0, byteArray.Length);
                 // Close the Stream object.
-                Console.WriteLine("OK: write");
+                // Console.WriteLine("client bank server: write");
                 dataStream.Close();
                 // Get the response.
                 WebResponse response = request.GetResponse();
@@ -173,7 +173,7 @@ namespace PaymentServer
                 reader.Close();
                 dataStream.Close();
                 response.Close();
-                Console.WriteLine("OK: read");
+                // Console.WriteLine("to bank server: read");
                 this.contentReceive = responseFromServer;
             }
             catch (Exception e)

@@ -20,8 +20,17 @@ namespace PaymentServer
 {
     class paymentServer_paymentRequestHandler
     {
+        public static void println(string input)
+        {
+            Console.WriteLine(input);
+        }
+
         public static JsonObjectCollection processPayment(paymentServer_dataBase DBHandler, JObject received)
         {
+            println("------------------Received message start: ---------------------\n");
+            println(received.ToString());
+            println("------------------Received message end: ---------------------\n");
+
             transactionRecord tr = getReceivedData(received);
 
             tr.status = authentication(DBHandler, received);
@@ -95,6 +104,10 @@ namespace PaymentServer
                 transaction.Add(new JsonStringValue("bankReplyMessage", tr.transactionMessage));
                 defineResponse.Add(transaction);
             }
+
+            println("++++++++++++++++++Return message start: +++++++++++++++++++\n");
+            println(defineResponse.ToString());
+            println("++++++++++++++++++Return message end: +++++++++++++++++++++\n");
 
             return defineResponse;
         }

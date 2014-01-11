@@ -25,12 +25,12 @@ namespace PaymentServer
         public static void handleRequest(HttpProcessor p, StreamReader inputData, string method){
             paymentServer_dataBase DBHandler = new paymentServer_dataBase();
 
-            JsonObjectCollection headers;
-            JsonObjectCollection messageType;
-            JsonObjectCollection user;
-            JsonObjectCollection merchant;
-            JsonObjectCollection customer;
-            JsonObjectCollection transactions;
+            JsonObjectCollection headers = new JsonObjectCollection();
+            JsonObjectCollection messageType = new JsonObjectCollection("messageType");
+            JsonObjectCollection user = new JsonObjectCollection("user");
+            JsonObjectCollection merchant = new JsonObjectCollection("merchant");
+            JsonObjectCollection customer = new JsonObjectCollection("customer");
+            JsonObjectCollection transactions = new JsonObjectCollection("transactions");
 
             //Define outgoing JSON message structures 
             JsonStringValue Accept_Encoding = new JsonStringValue("Accept-Encoding", "gzip,deflate,sdch");
@@ -41,7 +41,6 @@ namespace PaymentServer
             JsonStringValue Referer = new JsonStringValue("Referer", "https://paymentserver.dynu.com");
             JsonStringValue Connection = new JsonStringValue("Connection", "close");
             JsonStringValue User_Agent = new JsonStringValue("User-Agent", "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36");
-            headers = new JsonObjectCollection();
             headers.Name = "headers";
             headers.Add(Accept_Encoding);
             headers.Add(Cookie);
@@ -52,163 +51,157 @@ namespace PaymentServer
             headers.Add(Connection);
             headers.Add(User_Agent);
 
-            JsonNumericValue code = new JsonNumericValue("code", -1);
-            JsonBooleanValue request = new JsonBooleanValue("request", false);
-            JsonBooleanValue response = new JsonBooleanValue("response", false);
-            JsonStringValue details = new JsonStringValue("details", "");
-            messageType = new JsonObjectCollection();
-            messageType.Name = "messageType";
-            messageType.Add(code);
-            messageType.Add(request);
-            messageType.Add(response);
-            messageType.Add(details);
-
-            JsonStringValue bankCode = new JsonStringValue("bankCode", "");
-            JsonStringValue accountNum = new JsonStringValue("accountNum", "");
-            JsonStringValue accountPWD = new JsonStringValue("accountPWD", "");
-            JsonNumericValue acctBalance = new JsonNumericValue("acctBalance", -1);
-            JsonObjectCollection account = new JsonObjectCollection();
-            account.Name = "account";
-            account.Add(bankCode);
-            account.Add(accountNum);
-            account.Add(accountPWD);
-            account.Add(acctBalance);
-
-            JsonNumericValue POSHWID = new JsonNumericValue("POSHWID", -1);
-            JsonStringValue currentDK = new JsonStringValue("currentDK", "");
-            JsonStringValue nextDK = new JsonStringValue("nextDK", "");
-            JsonObjectCollection hardwareInfo = new JsonObjectCollection();
-            hardwareInfo.Name = "hardwareInfo";
-            hardwareInfo.Add(POSHWID);
-            hardwareInfo.Add(currentDK);
-            hardwareInfo.Add(nextDK);
-
-            JsonNumericValue DOBDay = new JsonNumericValue("DOBDay", -1);
-            JsonNumericValue DOBMonth = new JsonNumericValue("DOBMonth", -1);
-            JsonNumericValue DOBYear = new JsonNumericValue("DOBYear", -1);
-            JsonObjectCollection dateOfBirth = new JsonObjectCollection();
-            dateOfBirth.Name = "dateOfBirth";
-            dateOfBirth.Add(DOBDay);
-            dateOfBirth.Add(DOBMonth);
-            dateOfBirth.Add(DOBYear);
-           
-            JsonStringValue firstName = new JsonStringValue("firstName", "");
-            JsonStringValue middleName = new JsonStringValue("middleName", "");
-            JsonStringValue lastName = new JsonStringValue("lastName", "");
-            JsonStringValue occupation = new JsonStringValue("occupation", "");
-            JsonNumericValue SIN = new JsonNumericValue("SIN", -1);
-            JsonStringValue address1 = new JsonStringValue("address1", "");
-            JsonStringValue address2 = new JsonStringValue("address2", "");
-            JsonStringValue city = new JsonStringValue("city", "");
-            JsonStringValue province = new JsonStringValue("province", "");
-            JsonStringValue country = new JsonStringValue("country", "");
-            JsonStringValue postalCode = new JsonStringValue("postalCode", "");
-            JsonStringValue email = new JsonStringValue("email", "");
-            JsonNumericValue phoneNumber = new JsonNumericValue("phoneNumber", -1);
-            JsonObjectCollection personalInfo = new JsonObjectCollection();
-            personalInfo.Name = "personalInfo";
-            personalInfo.Add(firstName);
-            personalInfo.Add(middleName);
-            personalInfo.Add(lastName);
-            personalInfo.Add(email);
-            personalInfo.Add(dateOfBirth);
-            personalInfo.Add(occupation);
-            personalInfo.Add(SIN);
-            personalInfo.Add(address1);
-            personalInfo.Add(address2);
-            personalInfo.Add(city);
-            personalInfo.Add(province);
-            personalInfo.Add(country);
-            personalInfo.Add(postalCode);
-            personalInfo.Add(phoneNumber);
-            
-
-            JsonStringValue username = new JsonStringValue("username", "");
-            JsonStringValue password = new JsonStringValue("password", "");
-            JsonObjectCollection userID = new JsonObjectCollection();
-            userID.Name = "userID";
-            userID.Add(username);
-            userID.Add(password);
-
-            JsonBooleanValue receiveCommunication = new JsonBooleanValue("receiveCommunication", false);
-            JsonStringValue userType = new JsonStringValue("userType", "");
-            JsonNumericValue userNo = new JsonNumericValue("userNo", -1);
-            JsonStringValue transactionHistory = new JsonStringValue("transactionHistory", "");
-            user = new JsonObjectCollection();
-            user.Name = "user";
-            user.Add(userNo);
-            user.Add(userType);
-            user.Add(transactionHistory);
-            user.Add(receiveCommunication);
-            user.Add(account);
-            user.Add(hardwareInfo);
-            user.Add(userID);
-            user.Add(personalInfo);
-
-            JsonNumericValue merchantID = new JsonNumericValue("merchantID", -1);
-            JsonStringValue merchantName = new JsonStringValue("merchantName", "");
-            merchant = new JsonObjectCollection();
-            merchant.Name = "merchant";
-            merchant.Add(merchantID);
-            merchant.Add(merchantName);
-
-            JsonStringValue custUsername = new JsonStringValue("custUsername", "");
-            JsonStringValue custPWD = new JsonStringValue("custPWD", "");
-            customer = new JsonObjectCollection();
-            customer.Name = "customer";
-            customer.Add(custUsername);
-            customer.Add(custPWD);
-
-            JsonNumericValue year = new JsonNumericValue("year", -1);
-            JsonNumericValue month = new JsonNumericValue("month", -1);
-            JsonNumericValue day = new JsonNumericValue("day", -1);
-            JsonObjectCollection transactionDate = new JsonObjectCollection();
-            transactionDate.Name = "transactionDate";
-            transactionDate.Add(year);
-            transactionDate.Add(month);
-            transactionDate.Add(day);
-
-            JsonNumericValue hour = new JsonNumericValue("hour", -1);
-            JsonNumericValue minute = new JsonNumericValue("minute", -1);
-            JsonNumericValue second = new JsonNumericValue("second", -1);
-            JsonObjectCollection transactionTime = new JsonObjectCollection();
-            transactionTime.Name = "transactionTime";
-            transactionTime.Add(hour);
-            transactionTime.Add(minute);
-            transactionTime.Add(second);
-
-            JsonStringValue merchantUsername = new JsonStringValue("merchantUsername", "");
-            JsonStringValue merchantPWD = new JsonStringValue("merchantPWD", "");
-            JsonObjectCollection merchantIdent = new JsonObjectCollection();
-            merchantIdent.Name = "merchantIdent";
-            merchantIdent.Add(merchantUsername);
-            merchantIdent.Add(merchantPWD);
-
-            // JsonNumericValue transactionID = new JsonNumericValue("transactionID", -1);
-            JsonNumericValue amount = new JsonNumericValue("amount", -1);
-            JsonBooleanValue isRefund = new JsonBooleanValue("isRefund", false);
-            JsonNumericValue balance = new JsonNumericValue("balance", -1);
-            JsonStringValue receiptNo = new JsonStringValue("receiptNo", "");
-            JsonStringValue bankReplyMessage = new JsonStringValue("bankReplyMessage", "");
-            transactions = new JsonObjectCollection();
-            transactions.Name = "transactions";
-            // transactions.Add(transactionID);
-            transactions.Add(amount);
-            transactions.Add(isRefund);
-            transactions.Add(balance);
-            transactions.Add(receiptNo);
-            transactions.Add(transactionDate);
-            transactions.Add(transactionTime);
-            transactions.Add(merchantID);
-            transactions.Add(bankReplyMessage);
-
-
             //create JSON object
             JsonObjectCollection defineResponse = new JsonObjectCollection();     
 
             if (method == "GET")
             {
                 Console.WriteLine("GET request: {0}", p.http_url);
+
+                JsonNumericValue code = new JsonNumericValue("code", -1);
+                JsonBooleanValue request = new JsonBooleanValue("request", false);
+                JsonBooleanValue response = new JsonBooleanValue("response", false);
+                JsonStringValue details = new JsonStringValue("details", "");
+                messageType.Name = "messageType";
+                messageType.Add(code);
+                messageType.Add(request);
+                messageType.Add(response);
+                messageType.Add(details);
+
+                JsonStringValue bankCode = new JsonStringValue("bankCode", "");
+                JsonStringValue accountNum = new JsonStringValue("accountNum", "");
+                JsonStringValue accountPWD = new JsonStringValue("accountPWD", "");
+                JsonNumericValue acctBalance = new JsonNumericValue("acctBalance", -1);
+                JsonObjectCollection account = new JsonObjectCollection();
+                account.Name = "account";
+                account.Add(bankCode);
+                account.Add(accountNum);
+                account.Add(accountPWD);
+                account.Add(acctBalance);
+
+                JsonNumericValue POSHWID = new JsonNumericValue("POSHWID", -1);
+                JsonStringValue currentDK = new JsonStringValue("currentDK", "");
+                JsonStringValue nextDK = new JsonStringValue("nextDK", "");
+                JsonObjectCollection hardwareInfo = new JsonObjectCollection();
+                hardwareInfo.Name = "hardwareInfo";
+                hardwareInfo.Add(POSHWID);
+                hardwareInfo.Add(currentDK);
+                hardwareInfo.Add(nextDK);
+
+                JsonNumericValue DOBDay = new JsonNumericValue("DOBDay", -1);
+                JsonNumericValue DOBMonth = new JsonNumericValue("DOBMonth", -1);
+                JsonNumericValue DOBYear = new JsonNumericValue("DOBYear", -1);
+                JsonObjectCollection dateOfBirth = new JsonObjectCollection();
+                dateOfBirth.Name = "dateOfBirth";
+                dateOfBirth.Add(DOBDay);
+                dateOfBirth.Add(DOBMonth);
+                dateOfBirth.Add(DOBYear);
+
+                JsonStringValue firstName = new JsonStringValue("firstName", "");
+                JsonStringValue middleName = new JsonStringValue("middleName", "");
+                JsonStringValue lastName = new JsonStringValue("lastName", "");
+                JsonStringValue occupation = new JsonStringValue("occupation", "");
+                JsonNumericValue SIN = new JsonNumericValue("SIN", -1);
+                JsonStringValue address1 = new JsonStringValue("address1", "");
+                JsonStringValue address2 = new JsonStringValue("address2", "");
+                JsonStringValue city = new JsonStringValue("city", "");
+                JsonStringValue province = new JsonStringValue("province", "");
+                JsonStringValue country = new JsonStringValue("country", "");
+                JsonStringValue postalCode = new JsonStringValue("postalCode", "");
+                JsonStringValue email = new JsonStringValue("email", "");
+                JsonNumericValue phoneNumber = new JsonNumericValue("phoneNumber", -1);
+                JsonObjectCollection personalInfo = new JsonObjectCollection();
+                personalInfo.Name = "personalInfo";
+                personalInfo.Add(firstName);
+                personalInfo.Add(middleName);
+                personalInfo.Add(lastName);
+                personalInfo.Add(email);
+                personalInfo.Add(dateOfBirth);
+                personalInfo.Add(occupation);
+                personalInfo.Add(SIN);
+                personalInfo.Add(address1);
+                personalInfo.Add(address2);
+                personalInfo.Add(city);
+                personalInfo.Add(province);
+                personalInfo.Add(country);
+                personalInfo.Add(postalCode);
+                personalInfo.Add(phoneNumber);
+
+
+                JsonStringValue username = new JsonStringValue("username", "");
+                JsonStringValue password = new JsonStringValue("password", "");
+                JsonObjectCollection userID = new JsonObjectCollection();
+                userID.Name = "userID";
+                userID.Add(username);
+                userID.Add(password);
+
+                JsonBooleanValue receiveCommunication = new JsonBooleanValue("receiveCommunication", false);
+                JsonStringValue userType = new JsonStringValue("userType", "");
+                JsonNumericValue userNo = new JsonNumericValue("userNo", -1);
+                JsonStringValue transactionHistory = new JsonStringValue("transactionHistory", "");
+                user.Name = "user";
+                user.Add(userNo);
+                user.Add(userType);
+                user.Add(transactionHistory);
+                user.Add(receiveCommunication);
+                user.Add(account);
+                user.Add(hardwareInfo);
+                user.Add(userID);
+                user.Add(personalInfo);
+
+                JsonNumericValue merchantID = new JsonNumericValue("merchantID", -1);
+                JsonStringValue merchantName = new JsonStringValue("merchantName", "");
+                merchant.Name = "merchant";
+                merchant.Add(merchantID);
+                merchant.Add(merchantName);
+
+                JsonStringValue custUsername = new JsonStringValue("custUsername", "");
+                JsonStringValue custPWD = new JsonStringValue("custPWD", "");
+                customer.Name = "customer";
+                customer.Add(custUsername);
+                customer.Add(custPWD);
+
+                JsonNumericValue year = new JsonNumericValue("year", -1);
+                JsonNumericValue month = new JsonNumericValue("month", -1);
+                JsonNumericValue day = new JsonNumericValue("day", -1);
+                JsonObjectCollection transactionDate = new JsonObjectCollection();
+                transactionDate.Name = "transactionDate";
+                transactionDate.Add(year);
+                transactionDate.Add(month);
+                transactionDate.Add(day);
+
+                JsonNumericValue hour = new JsonNumericValue("hour", -1);
+                JsonNumericValue minute = new JsonNumericValue("minute", -1);
+                JsonNumericValue second = new JsonNumericValue("second", -1);
+                JsonObjectCollection transactionTime = new JsonObjectCollection();
+                transactionTime.Name = "transactionTime";
+                transactionTime.Add(hour);
+                transactionTime.Add(minute);
+                transactionTime.Add(second);
+
+                JsonStringValue merchantUsername = new JsonStringValue("merchantUsername", "");
+                JsonStringValue merchantPWD = new JsonStringValue("merchantPWD", "");
+                JsonObjectCollection merchantIdent = new JsonObjectCollection();
+                merchantIdent.Name = "merchantIdent";
+                merchantIdent.Add(merchantUsername);
+                merchantIdent.Add(merchantPWD);
+
+                // JsonNumericValue transactionID = new JsonNumericValue("transactionID", -1);
+                JsonNumericValue amount = new JsonNumericValue("amount", -1);
+                JsonBooleanValue isRefund = new JsonBooleanValue("isRefund", false);
+                JsonNumericValue balance = new JsonNumericValue("balance", -1);
+                JsonStringValue receiptNo = new JsonStringValue("receiptNo", "");
+                JsonStringValue bankReplyMessage = new JsonStringValue("bankReplyMessage", "");
+                transactions.Name = "transactions";
+                // transactions.Add(transactionID);
+                transactions.Add(amount);
+                transactions.Add(isRefund);
+                transactions.Add(balance);
+                transactions.Add(receiptNo);
+                transactions.Add(transactionDate);
+                transactions.Add(transactionTime);
+                transactions.Add(merchantID);
+                transactions.Add(bankReplyMessage);
 
                 //build response content from already defined JSON Objects
                 defineResponse.Insert(0, headers);
@@ -250,19 +243,12 @@ namespace PaymentServer
                         Console.WriteLine("custPWD: {0}", PWD);
 
                         //Call the ServerWorker function
-                        if (paymentServer_requestWorker.authenticateUser(DBHandler, authString))
+                        if (! paymentServer_requestWorker.authenticateUser(DBHandler, authString))
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Authentication Successful"));
-                        
-                        }
-                        else{
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid username and passowrd combination"));
+                            messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_FAILURE));
+                            messageType.Add(new JsonBooleanValue("response", true));
+                            messageType.Add(new JsonBooleanValue("request", false));
+                            messageType.Add(new JsonStringValue("details", "Invalid username and passowrd combination"));
 
                             //build response message content from already defined JSON Objects               
                             defineResponse.Insert(0, headers);
@@ -273,87 +259,67 @@ namespace PaymentServer
                         GetProfileResultType UserProf = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, uName);
                         if (UserProf.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Server error - Could not get profile data"));
+                            messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
+                            messageType.Add(new JsonBooleanValue("response", true));
+                            messageType.Add(new JsonBooleanValue("request", false));
+                            messageType.Add(new JsonStringValue("details", "Server error - Could not get profile data"));
                             
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
                             break;
                         }
 
-                        //populate messageType fields 
-                        // messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_SUCCESS));
-                        // messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                        // messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-
-                        Console.WriteLine("OK a1");
-
-                        user.Clear();
+                        messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_LOGIN_SUCCESS));
+                        messageType.Add(new JsonBooleanValue("response", true));
+                        messageType.Add(new JsonBooleanValue("request", false));
+                        messageType.Add(new JsonStringValue("details", "Authentication Successful"));
 
                         //populate User fields
-                        user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
-                        user = insert(user, userType, new JsonStringValue("userType", (string)UserProf.profile.userType));
-                        user = insert(user, transactionHistory, new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
-                        user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", Convert.ToBoolean(UserProf.profile.receiveCommunication)));
+                        user.Add(new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
+                        user.Add(new JsonStringValue("userType", (string)UserProf.profile.userType));
+                        user.Add(new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
+                        user.Add(new JsonBooleanValue("receiveCommunication", Convert.ToBoolean(UserProf.profile.receiveCommunication)));
 
-                        Console.WriteLine("OK a2");
-
-                        account = insert(account, bankCode, new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
-                        Console.WriteLine("OK a2.1");
-                        account = insert(account, accountNum, new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
-                        Console.WriteLine("OK a2.2");
-                        account = insert(account, accountPWD, new JsonStringValue("accountPWD", (string)UserProf.profile.accountPWD));
-                        Console.WriteLine("OK a2.3");
-                        account = insert(account, acctBalance, new JsonNumericValue("acctBalance", (int)UserProf.profile.acctBalance));
-                        Console.WriteLine("OK a2.4");
+                        JsonObjectCollection account = new JsonObjectCollection("account");
+                        account.Add(new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
+                        account.Add(new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
+                        account.Add(new JsonStringValue("accountPWD", (string)UserProf.profile.accountPWD));
+                        account.Add(new JsonNumericValue("acctBalance", (int)UserProf.profile.acctBalance));
                         user.Add(account);
-                        
 
-                        Console.WriteLine("OK a3");
-
-                        hardwareInfo = insert(hardwareInfo, POSHWID, new JsonNumericValue("POSHWID", (int)UserProf.profile.POSHWID));
-                        hardwareInfo = insert(hardwareInfo, currentDK, new JsonStringValue("currentDK", (string)UserProf.profile.currentDK));
-                        hardwareInfo = insert(hardwareInfo, nextDK, new JsonStringValue("nextDK", (string)UserProf.profile.nextDK));
+                        JsonObjectCollection hardwareInfo = new JsonObjectCollection("hardwareInfo");
+                        hardwareInfo.Add(new JsonNumericValue("POSHWID", (int)UserProf.profile.POSHWID));
+                        hardwareInfo.Add(new JsonStringValue("currentDK", (string)UserProf.profile.currentDK));
+                        hardwareInfo.Add(new JsonStringValue("nextDK", (string)UserProf.profile.nextDK));
                         user.Add(hardwareInfo);
 
-                        Console.WriteLine("OK a4");
-
-                        userID = insert(userID, username, new JsonStringValue("username", (string)UserProf.profile.username));
-                        userID = insert(userID, password, new JsonStringValue("password", (string)UserProf.profile.password));
-                        // user = insert(user, userID, userID);
-
+                        JsonObjectCollection userID = new JsonObjectCollection("userID");
+                        userID.Add(new JsonStringValue("username", (string)UserProf.profile.username));
+                        userID.Add(new JsonStringValue("password", (string)UserProf.profile.password));
                         user.Add(userID);
 
-                        Console.WriteLine("OK a5");
+                        JsonObjectCollection personalInfo = new JsonObjectCollection("personalInfo");
+                        personalInfo.Add(new JsonStringValue("firstName", (string)UserProf.profile.firstName));
+                        personalInfo.Add(new JsonStringValue("lastName", (string)UserProf.profile.lastName));
+                        personalInfo.Add(new JsonStringValue("middleName", (string)UserProf.profile.middleName));
+                        personalInfo.Add(new JsonStringValue("email", (string)UserProf.profile.email));
+                        personalInfo.Add(new JsonStringValue("occupation", (string)UserProf.profile.occupation));
+                        personalInfo.Add(new JsonNumericValue("SIN", (int)UserProf.profile.SIN));
+                        personalInfo.Add(new JsonStringValue("address1", (string)UserProf.profile.address1));
+                        personalInfo.Add(new JsonStringValue("address2", (string)UserProf.profile.address2));
+                        personalInfo.Add(new JsonStringValue("email", (string)UserProf.profile.city));
+                        personalInfo.Add(new JsonStringValue("province", (string)UserProf.profile.province));
+                        personalInfo.Add(new JsonStringValue("country", (string)UserProf.profile.country));
+                        personalInfo.Add(new JsonStringValue("postalCode", (string)UserProf.profile.postalCode));
+                        personalInfo.Add(new JsonNumericValue("phoneNumber", (int)UserProf.profile.phoneNumber));
 
-                        personalInfo.Clear();
-                        dateOfBirth.Clear();
-
-                        personalInfo = insert(personalInfo, firstName, new JsonStringValue("firstName", (string)UserProf.profile.firstName));
-                        personalInfo = insert(personalInfo, lastName, new JsonStringValue("lastName", (string)UserProf.profile.lastName));
-                        personalInfo = insert(personalInfo, middleName, new JsonStringValue("middleName", (string)UserProf.profile.middleName));
-                        personalInfo = insert(personalInfo, email, new JsonStringValue("email", (string)UserProf.profile.email));
-                        personalInfo = insert(personalInfo, occupation, new JsonStringValue("occupation", (string)UserProf.profile.occupation));
-                        personalInfo = insert(personalInfo, SIN, new JsonNumericValue("SIN", (int)UserProf.profile.SIN));
-                        personalInfo = insert(personalInfo, address1, new JsonStringValue("address1", (string)UserProf.profile.address1));
-                        personalInfo = insert(personalInfo, address2, new JsonStringValue("address2", (string)UserProf.profile.address2));
-                        personalInfo = insert(personalInfo, city, new JsonStringValue("email", (string)UserProf.profile.city));
-                        personalInfo = insert(personalInfo, province, new JsonStringValue("province", (string)UserProf.profile.province));
-                        personalInfo = insert(personalInfo, country, new JsonStringValue("country", (string)UserProf.profile.country));
-                        personalInfo = insert(personalInfo, postalCode, new JsonStringValue("postalCode", (string)UserProf.profile.postalCode));
-                        personalInfo = insert(personalInfo, phoneNumber, new JsonNumericValue("phoneNumber", (int)UserProf.profile.phoneNumber));
-                        dateOfBirth = insert(dateOfBirth, DOBDay, new JsonNumericValue("DOBDay", (int)UserProf.profile.DOBDay));
-                        dateOfBirth = insert(dateOfBirth, DOBMonth, new JsonNumericValue("DOBMonthr", (int)UserProf.profile.DOBMonth));
-                        dateOfBirth = insert(dateOfBirth, DOBYear, new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));
+                        JsonObjectCollection dateOfBirth = new JsonObjectCollection("dateOfBirth");
+                        dateOfBirth.Add(new JsonNumericValue("DOBDay", (int)UserProf.profile.DOBDay));
+                        dateOfBirth.Add(new JsonNumericValue("DOBMonthr", (int)UserProf.profile.DOBMonth));
+                        dateOfBirth.Add(new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));
                         personalInfo.Add(dateOfBirth);
+
                         user.Add(personalInfo);
-
-                        // personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
-                        // user = insert(user, personalInfo, personalInfo);
-
-                        Console.WriteLine("OK b1");
 
                         //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
@@ -410,24 +376,24 @@ namespace PaymentServer
 
                         if (rtype == ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "User account created"));
+                            messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_SUCCESS));
+                            messageType.Add(new JsonBooleanValue("response", true));
+                            messageType.Add(new JsonBooleanValue("request", false));
+                            messageType.Add(new JsonStringValue("details", "User account created"));
                         }
                         else if(rtype == ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. The email provided is already registered"));
+                            messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
+                            messageType.Add(new JsonBooleanValue("response", true));
+                            messageType.Add(new JsonBooleanValue("request", false));
+                            messageType.Add(new JsonStringValue("details", "Could not create profile. The email provided is already registered"));
                         }
                         else if (rtype == ResultCodeType.ERROR_CREATE_PROFILE_USERNAME_EXISTS)
                         {
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Could not create profile. The username provided is already registered"));
+                            messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SIGN_UP_FAILURE));
+                            messageType.Add(new JsonBooleanValue("response", true));
+                            messageType.Add(new JsonBooleanValue("request", false));
+                            messageType.Add(new JsonStringValue("details", "Could not create profile. The username provided is already registered"));
                         }
 
                         //build response message content from already defined JSON Objects               
@@ -702,6 +668,7 @@ namespace PaymentServer
                         */
                         //build response message content from already defined JSON Objects                           
 
+                        /// provide message type and transactions
                         defineResponse = paymentServer_paymentRequestHandler.processPayment(DBHandler, received);
 
                         defineResponse.Insert(0, headers);
@@ -716,7 +683,7 @@ namespace PaymentServer
             completeResponse.Add(defineResponse);
 
             //Write message to client
-            Console.WriteLine("Response to Client: \n{0}", completeResponse.ToString());  
+            Console.WriteLine("Response to Client: \n{0}", completeResponse.ToString());
             byte[] message = JsonStringToByteArray(completeResponse.ToString());
             p.sslStream.Write(message);
         }
@@ -746,8 +713,6 @@ namespace PaymentServer
             }
             return result;
         }
-
-        
     }
 }
 

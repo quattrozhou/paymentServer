@@ -290,26 +290,46 @@ namespace PaymentServer
 
                         Console.WriteLine("OK a1");
 
+                        user.Clear();
+
                         //populate User fields
                         user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
                         user = insert(user, userType, new JsonStringValue("userType", (string)UserProf.profile.userType));
                         user = insert(user, transactionHistory, new JsonStringValue("transactionHistory", (string)UserProf.profile.transactionHistory));
                         user = insert(user, receiveCommunication, new JsonBooleanValue("receiveCommunication", Convert.ToBoolean(UserProf.profile.receiveCommunication)));
 
+                        Console.WriteLine("OK a2");
+
                         account = insert(account, bankCode, new JsonStringValue("bankCode", (string)UserProf.profile.bankCode));
+                        Console.WriteLine("OK a2.1");
                         account = insert(account, accountNum, new JsonStringValue("accountNum", (string)UserProf.profile.accountNum));
+                        Console.WriteLine("OK a2.2");
                         account = insert(account, accountPWD, new JsonStringValue("accountPWD", (string)UserProf.profile.accountPWD));
+                        Console.WriteLine("OK a2.3");
                         account = insert(account, acctBalance, new JsonNumericValue("acctBalance", (int)UserProf.profile.acctBalance));
-                        user = insert(user, account, account);
+                        Console.WriteLine("OK a2.4");
+                        user.Add(account);
+                        
+
+                        Console.WriteLine("OK a3");
 
                         hardwareInfo = insert(hardwareInfo, POSHWID, new JsonNumericValue("POSHWID", (int)UserProf.profile.POSHWID));
                         hardwareInfo = insert(hardwareInfo, currentDK, new JsonStringValue("currentDK", (string)UserProf.profile.currentDK));
                         hardwareInfo = insert(hardwareInfo, nextDK, new JsonStringValue("nextDK", (string)UserProf.profile.nextDK));
-                        user = insert(user, hardwareInfo, hardwareInfo);
+                        user.Add(hardwareInfo);
+
+                        Console.WriteLine("OK a4");
 
                         userID = insert(userID, username, new JsonStringValue("username", (string)UserProf.profile.username));
                         userID = insert(userID, password, new JsonStringValue("password", (string)UserProf.profile.password));
-                        user = insert(user, userID, userID);
+                        // user = insert(user, userID, userID);
+
+                        user.Add(userID);
+
+                        Console.WriteLine("OK a5");
+
+                        personalInfo.Clear();
+                        dateOfBirth.Clear();
 
                         personalInfo = insert(personalInfo, firstName, new JsonStringValue("firstName", (string)UserProf.profile.firstName));
                         personalInfo = insert(personalInfo, lastName, new JsonStringValue("lastName", (string)UserProf.profile.lastName));
@@ -327,8 +347,11 @@ namespace PaymentServer
                         dateOfBirth = insert(dateOfBirth, DOBDay, new JsonNumericValue("DOBDay", (int)UserProf.profile.DOBDay));
                         dateOfBirth = insert(dateOfBirth, DOBMonth, new JsonNumericValue("DOBMonthr", (int)UserProf.profile.DOBMonth));
                         dateOfBirth = insert(dateOfBirth, DOBYear, new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));
-                        personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
-                        user = insert(user, personalInfo, personalInfo);
+                        personalInfo.Add(dateOfBirth);
+                        user.Add(personalInfo);
+
+                        // personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
+                        // user = insert(user, personalInfo, personalInfo);
 
                         Console.WriteLine("OK b1");
 
@@ -485,7 +508,7 @@ namespace PaymentServer
                         // --------------------Message comming in-------------------------------------
                         // --------------------Extract information-------------------------------
                         // customer ID and password, prepare for curstomer authentication
-                        JObject customerJsonObj = (JObject)received.SelectToken("customer");
+                        /*JObject customerJsonObj = (JObject)received.SelectToken("customer");
                         string tcustUsername = (string)customerJsonObj.SelectToken("custUsername");
                         string tcustPWD = (string)customerJsonObj.SelectToken("custPWD");
                         string tcustAuthString = "" + tcustUsername + tcustPWD;
@@ -506,18 +529,13 @@ namespace PaymentServer
                         // int treceiptNo = (int)transactionJsonObj.SelectToken("receiptNo");
                         Boolean isRefundT = (Boolean)transactionJsonObj.SelectToken("isRefund");
 
+                        Console.WriteLine("------------------Received message: ---------------------\n" +
+                            received.ToString() + "------------------Received message: ---------------------\n");
+
                         // JObject transactionRequester = (JObject)received.SelectToken("user");
                         // int transactionUserNo = (int)transactionRequester.SelectToken("userNo");
                         
                         // obtain transaction date and time
-                        /*JObject ttransactionDate = (JObject) transactionJsonObj.SelectToken("transactionDate");
-                        int tyear = (int)ttransactionDate.SelectToken("year");
-                        int tmonth = (int)ttransactionDate.SelectToken("month");
-                        int tday = (int)ttransactionDate.SelectToken("day");
-                        JObject ttransactionTime = (JObject)transactionJsonObj.SelectToken("transactionTime");
-                        int thour = (int)ttransactionTime.SelectToken("hour");
-                        int tminute = (int)ttransactionTime.SelectToken("minute");
-                        int tsecond = (int)ttransactionTime.SelectToken("second");*/
 
                         // DateTime transactionTimeOnMobile = new DateTime(tyear, tmonth, tday, thour, tminute, tsecond);
 
@@ -536,10 +554,12 @@ namespace PaymentServer
                         trecode.transactionMessage = "";
                         trecode.receiptNumber = "";
 
+                        transactions.Clear();
+
                         // store time into the transaction JSON object
                         transactionTime = insert(transactionTime, hour, new JsonNumericValue("hour", currentTime.Hour));
-                        transactionTime = insert(transactionTime, minute, new JsonNumericValue("minute", currentTime.Hour));
-                        transactionTime = insert(transactionTime, second, new JsonNumericValue("second", currentTime.Hour));
+                        transactionTime = insert(transactionTime, minute, new JsonNumericValue("minute", currentTime.Minute));
+                        transactionTime = insert(transactionTime, second, new JsonNumericValue("second", currentTime.Second));
                         transactions.Add(transactionTime);
 
                         transactionDate = insert(transactionDate, year, new JsonNumericValue("year", currentTime.Year));
@@ -547,43 +567,9 @@ namespace PaymentServer
                         transactionDate = insert(transactionDate, day, new JsonNumericValue("day", currentTime.Day));
                         transactions.Add(transactionTime);
 
-                        // -------------authentication costomer-----------------------------
-                        // authentication costomer
-                        if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString)) && !isRefundT)
-                        {
-                            // cannot authentication customer
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid customer username and passowrd combination"));
+                        messageType.Clear();
 
-                            defineResponse.Insert(0, headers);
-                            defineResponse.Add(messageType);
-
-                            /// store transaction record
-                            trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_CUSTOMER;
-                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
-                            break;
-                        }
-
-                        //// ------------authentication merchant-------------------------------------
-                        // authentication merchant
-                        if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString)) && isRefundT)
-                        {
-                            // cannot authentication merchant
-                            messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
-                            messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                            messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                            messageType = insert(messageType, details, new JsonStringValue("details", "Invalid merchant username and passowrd combination"));
-
-                            defineResponse.Insert(0, headers);
-                            defineResponse.Add(messageType);
-
-                            /// store transaction record
-                            trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_MERCHANT;
-                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
-                            break;
-                        }
+                        
 
                         // ---------get user profile----------------------------------
                         // pull user's account details
@@ -599,12 +585,15 @@ namespace PaymentServer
 
                             trecode.transactionMessage = "error when look up customer info from database";
                             trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            // int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
+                            Console.WriteLine("pull user's account details f");
                             break;
                         }
+
+                        Console.WriteLine("pull user's account details s");
 
                         // prepare for the bank info for bank server
                         string accountNum_transaction = UserProf_transaction.profile.accountNum;
@@ -625,12 +614,16 @@ namespace PaymentServer
 
                             trecode.transactionMessage = "error when look up merchant info from database";
                             trecode.status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-                            int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                            // int dbr = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
 
                             defineResponse.Insert(0, headers);
                             defineResponse.Add(messageType);
+
+                            Console.WriteLine("pull merchant's account details f");
                             break;
                         }
+
+                        Console.WriteLine("pull merchant's account details s");
 
                         // prepare for the bank info for bank server
                         string accountNumMerchant_transaction = merchantProf_transaction.profile.accountNum;
@@ -649,28 +642,33 @@ namespace PaymentServer
                                 accountNumMerchant_transaction, accountPWDMerchant_transaction, bankCodeMerchant_transaction,
                                 accountNum_transaction, bankCode_transaction, tamount);
 
+                        Console.WriteLine("------------connect to bank ----------");
+                        Console.WriteLine(tresult.MyToString());
+
                         // -----------add this transaction record to database-------------------------
                         trecode.status = tresult.status;
                         trecode.transactionMessage = tresult.bankReplyMessage;
                         trecode.receiptNumber = tresult.receiptNumber;
                         // int transactionIDT = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
-                        paymentServer_requestWorker.addNewTransactionRecord_toCustomerField(DBHandler, trecode, tresult);
+                        paymentServer_requestWorker.addNewTransactionRecord_toCustomerField(DBHandler, trecode);
+
+                        Console.WriteLine("addNewTransactionRecord_toCustomerField");
 
                         // ---------- update the remaining balance in the user profile database
                         if (trecode.isRefund) // is refund, the customer is the payee
                         {
-                            int thisbalance = tryToConvertStringToInt(tresult.payeeBalance);
+                            long thisbalance = tryToConvertStringToLong(tresult.payeeBalance);
                             paymentServer_requestWorker.updateBalance(DBHandler, tcustUsername, thisbalance);
 
-                            thisbalance = tryToConvertStringToInt(tresult.payerBalance);
+                            thisbalance = tryToConvertStringToLong(tresult.payerBalance);
                             paymentServer_requestWorker.updateBalance(DBHandler, tmerchantUsername, thisbalance);
                         }
                         else // is refund, the customer is the payer
                         {
-                            int thisbalance = tryToConvertStringToInt(tresult.payerBalance);
+                            long thisbalance = tryToConvertStringToLong(tresult.payerBalance);
                             paymentServer_requestWorker.updateBalance(DBHandler, tcustUsername, thisbalance);
 
-                            thisbalance = tryToConvertStringToInt(tresult.payeeBalance);
+                            thisbalance = tryToConvertStringToLong(tresult.payeeBalance);
                             paymentServer_requestWorker.updateBalance(DBHandler, tmerchantUsername, thisbalance);
                         }
                     
@@ -692,20 +690,21 @@ namespace PaymentServer
 
                         messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
-                        messageType = insert(messageType, details, new JsonStringValue(tresult.bankReplyMessage));
+                        messageType = insert(messageType, details, new JsonStringValue("details", tresult.bankReplyMessage));
 
                         // transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", transactionIDT));
-                        transactions = insert(transactions, amount, new JsonNumericValue("amount", Convert.ToInt32(tamount)));
+                        transactions = insert(transactions, amount, new JsonNumericValue("amount", Convert.ToInt64(tamount)));
                         transactions = insert(transactions, isRefund, new JsonBooleanValue("isRefund", isRefundT));
-                        transactions = insert(transactions, balance, new JsonNumericValue("balance", Convert.ToInt32(remainBalance)));
+                        transactions = insert(transactions, balance, new JsonNumericValue("balance", Convert.ToInt64(remainBalance)));
                         transactions = insert(transactions, receiptNo, new JsonStringValue("receiptNo", trecode.receiptNumber));
                         transactions = insert(transactions, merchantID, new JsonNumericValue("merchantID", (int)1));
                         transactions = insert(transactions, bankReplyMessage, new JsonStringValue("bankReplyMessage", trecode.transactionMessage));
-
+                        */
                         //build response message content from already defined JSON Objects                           
+
+                        defineResponse = paymentServer_paymentRequestHandler.processPayment(DBHandler, received);
+
                         defineResponse.Insert(0, headers);
-                        defineResponse.Add(messageType);
-                        defineResponse.Add(transactions);
 
                         break;
                 }
@@ -729,17 +728,17 @@ namespace PaymentServer
         }
 
         public static JsonObjectCollection insert(JsonObjectCollection obj, JsonObject item, JsonObject newItem){
-            obj.Remove(item);
+            // obj.Remove(item);
             obj.Add( newItem);
             return obj;
         }
 
-        public static int tryToConvertStringToInt(string input)
+        public static long tryToConvertStringToLong(string input)
         {
-            int result = 0;
+            long result = 0;
             try
             {
-                result = Convert.ToInt32(input);
+                result = Convert.ToInt64(input);
             }
             catch (Exception ex)
             {
@@ -747,6 +746,8 @@ namespace PaymentServer
             }
             return result;
         }
+
+        
     }
 }
 

@@ -29,11 +29,11 @@ namespace PaymentServer
 
             if (count == 1)
             {
-                Console.WriteLine("ServerWorker::authenticateUser - User authenticated with {0}", authenticationString);
+                // Console.WriteLine("ServerWorker::authenticateUser - User authenticated with {0}", authenticationString);
                 // DBHandler.Backup();
                 return true;
             }
-            Console.WriteLine("ServerWorker::authenticateUser - Could not authenticate user. DB Query returned count of {0}", count);
+            // Console.WriteLine("ServerWorker::authenticateUser - Could not authenticate user. DB Query returned count of {0}", count);
             return false;
         }
 
@@ -79,7 +79,7 @@ namespace PaymentServer
             (paymentServer_dataBase DBHandler, string username)
         {
             GetProfileResultType reply = new GetProfileResultType();
-            reply.status = ResultCodeType.ERROR_UNKNOWN;
+            reply.status = ResultCodeType.ERROR_get_profile;
 
             int count = DBHandler.Count("*", "userProfile WHERE username='" + username + "'");
 
@@ -108,7 +108,7 @@ namespace PaymentServer
         /// <returns>
         /// Transaction ID (assigned by database)
         /// </returns>
-        public static int addNewTransactionRecord
+        /*public static int addNewTransactionRecord
             (paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             string profile = "transactionhistory";
@@ -125,9 +125,9 @@ namespace PaymentServer
                 Console.WriteLine(ex.ToString());
             }
             return 0;
-        }
+        }*/
 
-        public static ResultCodeType updateBalance(paymentServer_dataBase DBHandler, string username, int balance)
+        public static ResultCodeType updateBalance(paymentServer_dataBase DBHandler, string username, long balance)
         {
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
@@ -262,8 +262,8 @@ namespace PaymentServer
         
         }*/
 
-        public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler,
-            transactionRecord tr, TransactionResult tre)
+        public static ResultCodeType addNewTransactionRecord_toCustomerField(
+            paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
@@ -280,13 +280,12 @@ namespace PaymentServer
 
             // string transactionHistory = list[0][25];
 
-            oldTH = oldTH + "\n" + tr.MyToString() + tre.MyToString();
+            oldTH = oldTH + "\n" + tr.MyToString();
 
-            DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = " + tr.customerUsername);
+            DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = '" + tr.customerUsername+"'");
 
             res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
             return res;
         }
-
     }
 }

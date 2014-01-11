@@ -29,6 +29,9 @@ namespace PaymentServer
         ERROR_CREATE_PROFILE_USERNAME_EXISTS = 11,
         ERROR_CREATE_PROFILE_EMAIL_EXISTS = 12,
         //all new codes should be placed above this line
+
+        ERROR_get_profile = 51,
+
         ERROR_CREATE_PROFILE_MAX
     };
 
@@ -258,9 +261,15 @@ namespace PaymentServer
         FROM_BANK_TRANSACTION_NACK = 5,
 
         //  for internal use only (when error happens before contact bank)
+        AUTHEDICATION_SUCCESS = 50,
+        ERROR_AUTHENDICATION_CUSTOMER = 51,
+        ERROR_AUTHENDICATION_MERCHANT = 52,
+
+        ERROR_GET_CUSTOMER_PROFILE = 53,
+        ERROR_GET_MERCHANT_PROFILE = 54,
+        
+
         ERROR_BEFORE_CONTACT_BANK = 90,
-        ERROR_AUTHENDICATION_CUSTOMER = 91,
-        ERROR_AUTHENDICATION_MERCHANT = 92,
 
         // all new codes should be placed above this line
         FROM_BANK_CODE_MAX
@@ -278,7 +287,10 @@ namespace PaymentServer
         public string receiptNumber;
         // public int userNo;
 
-        public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, string a)
+        public string customerBalance = "";
+        public string merchantBalance = "";
+
+        /*public transactionRecord(int y, int m, int d, int h, int min, int s, string cn, string mn, string a)
         {
             this.time = new DateTime(y, m, d, h, min, s);
             this.customerUsername = cn;
@@ -302,7 +314,7 @@ namespace PaymentServer
             transactionMessage = "";
             receiptNumber = "";
             // userNo = 0;
-        }
+        }*/
 
         public transactionRecord()
         {

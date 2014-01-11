@@ -207,13 +207,24 @@ namespace PaymentServer
         }
     };
 
-    public struct TransactionResult
+    public class TransactionResult
     {
         public FromBankServerMessageTypes status;
         public string bankReplyMessage;
         public string receiptNumber;
         public string payerBalance;
         public string payeeBalance;
+
+        public string MyToString()
+        {
+            string output = "";
+            if(status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
+                output = output + " transaction approved";
+            else
+                output = output + " transaction not approved " + bankReplyMessage;
+            // output = output + " receipt: "+receiptNumber;
+            return output;
+        }
     }
 
     public enum ToBankServerMessageTypes

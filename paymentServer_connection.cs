@@ -319,7 +319,7 @@ namespace PaymentServer
     }
 
     public class TestMain {
-        public static int Main(String[] args)
+        public static int Main3(String[] args)
         {
             paymentServer_dataBase DBHandler = new paymentServer_dataBase();
 
@@ -370,11 +370,19 @@ namespace PaymentServer
 
             int now = DateTime.Now.Second * 1000 + DateTime.Now.Millisecond;
 
-            GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, "user8");
+            /*GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, "user8");
             Console.WriteLine("result.status: " + result.status);
             Console.WriteLine("result.accountNum: " + result.profile.accountNum);
             Console.WriteLine("result.accountPWD: " + result.profile.accountPWD);
-            Console.WriteLine("result.authenticationString: " + result.profile.authenticationString);
+            Console.WriteLine("result.authenticationString: " + result.profile.authenticationString);*/
+
+            TransactionResult result = paymentServer_connectBank.sendBankTransaction("0102", "123", "010",
+                "0106", "010", "2000000");
+            Console.WriteLine("1: " + result.bankReplyMessage);
+            Console.WriteLine("2: " + result.receiptNumber);
+            Console.WriteLine("3: " + result.status);
+            Console.WriteLine("4: " + result.payeeBalance);
+            Console.WriteLine("5: " + result.payerBalance);
 
             int now2 = DateTime.Now.Second * 1000 + DateTime.Now.Millisecond - now;
             Console.WriteLine(now2);
@@ -395,7 +403,7 @@ namespace PaymentServer
         }
 
 
-        public static int Main2(String[] args) {
+        public static int Main(String[] args) {
             HttpServer httpServer;
             string certificate = null;
             if (args.GetLength(0) > 0) {

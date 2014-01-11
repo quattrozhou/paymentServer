@@ -72,7 +72,7 @@ namespace PaymentServer
 
             JObject received = JObject.Parse(bankServerResult);
             result.status = (FromBankServerMessageTypes)(int)received.SelectToken("messageType");
-            result.bankReplyMessage = (string)received.SelectToken("transactionMessage");
+            result.bankReplyMessage = (string)received.SelectToken("details");
             result.receiptNumber = (string)received.SelectToken("receiptNumber");
             result.payerBalance = (string)received.SelectToken("payerBalance");
             result.payeeBalance = (string)received.SelectToken("payeeBalance");

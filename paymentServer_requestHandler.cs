@@ -184,15 +184,15 @@ namespace PaymentServer
             merchantIdent.Add(merchantUsername);
             merchantIdent.Add(merchantPWD);
 
-            JsonNumericValue transactionID = new JsonNumericValue("transactionID", -1);
+            // JsonNumericValue transactionID = new JsonNumericValue("transactionID", -1);
             JsonNumericValue amount = new JsonNumericValue("amount", -1);
             JsonBooleanValue isRefund = new JsonBooleanValue("isRefund", false);
             JsonNumericValue balance = new JsonNumericValue("balance", -1);
-            JsonNumericValue receiptNo = new JsonNumericValue("receiptNo", -1);
+            JsonStringValue receiptNo = new JsonStringValue("receiptNo", "");
             JsonStringValue bankReplyMessage = new JsonStringValue("bankReplyMessage", "");
             transactions = new JsonObjectCollection();
             transactions.Name = "transactions";
-            transactions.Add(transactionID);
+            // transactions.Add(transactionID);
             transactions.Add(amount);
             transactions.Add(isRefund);
             transactions.Add(balance);
@@ -284,9 +284,11 @@ namespace PaymentServer
                         }
 
                         //populate messageType fields 
-                        messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_SUCCESS));
-                        messageType = insert(messageType, response, new JsonBooleanValue("response", true));
-                        messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+                        // messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_SUCCESS));
+                        // messageType = insert(messageType, response, new JsonBooleanValue("response", true));
+                        // messageType = insert(messageType, request, new JsonBooleanValue("request", false));
+
+                        Console.WriteLine("OK a1");
 
                         //populate User fields
                         user = insert(user, userNo, new JsonNumericValue("userNo", (int)UserProf.profile.userNo));
@@ -327,6 +329,8 @@ namespace PaymentServer
                         dateOfBirth = insert(dateOfBirth, DOBYear, new JsonNumericValue("DOBYear", (int)UserProf.profile.DOBYear));
                         personalInfo = insert(personalInfo, dateOfBirth, dateOfBirth);
                         user = insert(user, personalInfo, personalInfo);
+
+                        Console.WriteLine("OK b1");
 
                         //build response message content from already defined JSON Objects               
                         defineResponse.Insert(0, headers);
@@ -524,18 +528,30 @@ namespace PaymentServer
                         transactionRecord trecode = new transactionRecord();
                         // trecode.userNo = transactionUserNo;
                         trecode.time = currentTime;
-                        trecode.customerName = tcustUsername;
-                        trecode.merchantName = tmerchantUsername;
+                        trecode.customerUsername = tcustUsername;
+                        trecode.merchantUsername = tmerchantUsername;
                         trecode.amount = tamount;
                         trecode.isRefund = isRefundT;
                         trecode.status = FromBankServerMessageTypes.ERROR_AUTHENDICATION_CUSTOMER;
                         trecode.transactionMessage = "";
                         trecode.receiptNumber = "";
 
+                        // store time into the transaction JSON object
+                        transactionTime = insert(transactionTime, hour, new JsonNumericValue("hour", currentTime.Hour));
+                        transactionTime = insert(transactionTime, minute, new JsonNumericValue("minute", currentTime.Hour));
+                        transactionTime = insert(transactionTime, second, new JsonNumericValue("second", currentTime.Hour));
+                        transactions.Add(transactionTime);
+
+                        transactionDate = insert(transactionDate, year, new JsonNumericValue("year", currentTime.Year));
+                        transactionDate = insert(transactionDate, month, new JsonNumericValue("month", currentTime.Month));
+                        transactionDate = insert(transactionDate, day, new JsonNumericValue("day", currentTime.Day));
+                        transactions.Add(transactionTime);
+
                         // -------------authentication costomer-----------------------------
                         // authentication costomer
                         if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tcustAuthString)) && !isRefundT)
                         {
+                            // cannot authentication customer
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
@@ -554,6 +570,7 @@ namespace PaymentServer
                         // authentication merchant
                         if ((!paymentServer_requestWorker.authenticateUser(DBHandler, tmerchantAuthString)) && isRefundT)
                         {
+                            // cannot authentication merchant
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
@@ -574,6 +591,7 @@ namespace PaymentServer
 
                         if (UserProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
+                            // cannot get customer's profile from database
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
@@ -599,6 +617,7 @@ namespace PaymentServer
 
                         if (merchantProf_transaction.status != ResultCodeType.UPDATE_USER_PROFILE_SUCCESS)
                         {
+                            // cannot get merchant's profile from database
                             messageType = insert(messageType, code, new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
                             messageType = insert(messageType, response, new JsonBooleanValue("response", true));
                             messageType = insert(messageType, request, new JsonBooleanValue("request", false));
@@ -634,7 +653,8 @@ namespace PaymentServer
                         trecode.status = tresult.status;
                         trecode.transactionMessage = tresult.bankReplyMessage;
                         trecode.receiptNumber = tresult.receiptNumber;
-                        int transactionIDT = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                        // int transactionIDT = paymentServer_requestWorker.addNewTransactionRecord(DBHandler, trecode);
+                        paymentServer_requestWorker.addNewTransactionRecord_toCustomerField(DBHandler, trecode, tresult);
 
                         // ---------- update the remaining balance in the user profile database
                         if (trecode.isRefund) // is refund, the customer is the payee
@@ -674,7 +694,7 @@ namespace PaymentServer
                         messageType = insert(messageType, request, new JsonBooleanValue("request", false));
                         messageType = insert(messageType, details, new JsonStringValue(tresult.bankReplyMessage));
 
-                        transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", transactionIDT));
+                        // transactions = insert(transactions, transactionID, new JsonNumericValue("transactionID", transactionIDT));
                         transactions = insert(transactions, amount, new JsonNumericValue("amount", Convert.ToInt32(tamount)));
                         transactions = insert(transactions, isRefund, new JsonBooleanValue("isRefund", isRefundT));
                         transactions = insert(transactions, balance, new JsonNumericValue("balance", Convert.ToInt32(remainBalance)));
@@ -682,16 +702,6 @@ namespace PaymentServer
                         transactions = insert(transactions, merchantID, new JsonNumericValue("merchantID", (int)1));
                         transactions = insert(transactions, bankReplyMessage, new JsonStringValue("bankReplyMessage", trecode.transactionMessage));
 
-                        transactionTime = insert(transactionTime, hour, new JsonNumericValue("hour", currentTime.Hour));
-                        transactionTime = insert(transactionTime, minute, new JsonNumericValue("minute", currentTime.Hour));
-                        transactionTime = insert(transactionTime, second, new JsonNumericValue("second", currentTime.Hour));
-                        transactions.Add(transactionTime);
-
-                        transactionDate = insert(transactionDate, year, new JsonNumericValue("year", currentTime.Year));
-                        transactionDate = insert(transactionDate, month, new JsonNumericValue("month", currentTime.Month));
-                        transactionDate = insert(transactionDate, day, new JsonNumericValue("day", currentTime.Day));
-                        transactions.Add(transactionTime);
-                        
                         //build response message content from already defined JSON Objects                           
                         defineResponse.Insert(0, headers);
                         defineResponse.Add(messageType);

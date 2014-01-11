@@ -262,30 +262,31 @@ namespace PaymentServer
         
         }*/
 
-        /*public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler, transactionRecord tr)
+        public static ResultCodeType addNewTransactionRecord_toCustomerField(paymentServer_dataBase DBHandler,
+            transactionRecord tr, TransactionResult tre)
         {
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
 
-            List<string>[] list = DBHandler.Select("userProfile", "userNo", ""+ tr.userNo);
-            if (list.Length != 1) return res; // exit if there is an error in database
+            string oldTH = DBHandler.selectColumn("userProfile", "username", "" + tr.customerUsername, "transactionHistory");
+            // if (list.Length != 1) return res; // exit if there is an error in database
 
-            if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry
+            // if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry
 
             res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
 
             // UserProfile p = new UserProfile();
             // PropertyInfo[] properties = p.GetType().GetProperties();
 
-            string transactionHistory = list[0][25];
+            // string transactionHistory = list[0][25];
 
-            transactionHistory = transactionHistory + "\n" + tr.MyToString();
+            oldTH = oldTH + "\n" + tr.MyToString() + tre.MyToString();
 
-            DBHandler.Update("userProfile", "transactionHistory = '" + transactionHistory + "'", "userNo = "+tr.userNo);
-            
+            DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = " + tr.customerUsername);
+
             res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
             return res;
-        }*/
+        }
 
     }
 }

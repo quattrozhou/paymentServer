@@ -415,6 +415,52 @@ namespace PaymentServer
             }
             Thread thread = new Thread(new ThreadStart(httpServer.listen));
             thread.Start();
+
+            while (true)
+            {
+                string inputLine = Console.ReadLine();
+                string[] input = inputLine.Split(' ');
+                if (input.Length == 1)
+                {
+                    if(input[0].Equals("help"))
+                    {
+                        Console.WriteLine("command list: \n"+
+                            "getprofile USERNAME\n" +
+                            "getth USERNAME\n" +
+                            "getab USERNAME\n" +
+                            "getprofile COLUMN USERNAME\n");
+                    }
+                }
+                if (input.Length == 2)
+                {
+                    if (input[0].Equals("getprofile"))
+                    {
+                        paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+                        GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, input[1]);
+                        Console.WriteLine("result: " + result.profile.getDatabaseValueList());
+                    }
+                    else if (input[0].Equals("getth"))
+                    {
+                        paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+                        Console.WriteLine("result: " + DBHandler.selectColumn("userProfile", "username", input[1], "transactionHistory"));
+                    }
+                    else
+                    {
+                        paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+                        Console.WriteLine("result: " + DBHandler.selectColumn("userProfile", "username", input[1], "acctBalance"));
+                    }
+                }
+                else if (input.Length == 3)
+                {
+                    if (input[0].Equals("getprofile"))
+                    {
+                        paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+                        Console.WriteLine("result: " + DBHandler.selectColumn("userProfile", "username", input[2], input[1]));
+                    }
+                }
+
+            }
+
             return 0;
         }
     }

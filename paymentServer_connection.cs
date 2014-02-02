@@ -113,6 +113,7 @@ namespace PaymentServer
                 socket.Close();
                 return;
             }
+            
             finally
             {
                 // The client stream will be closed with the sslStream 
@@ -284,15 +285,27 @@ namespace PaymentServer
             serverCertificate = X509Certificate.CreateFromCertFile(certificate);
 
             listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
-            Console.WriteLine("Listening On: " + port.ToString());
-            while (is_active) {
-                Console.WriteLine("Waiting for connection...\n");
-                TcpClient s = listener.AcceptTcpClient();
-                HttpProcessor processor = new HttpProcessor(s, this, serverCertificate);
-                Thread thread = new Thread(new ThreadStart(processor.process));
-                thread.Start();
-                Thread.Sleep(1);
+            try
+            {
+                listener.Start();
+                Console.WriteLine("Listening On: " + port.ToString());
+                while (is_active)
+                {
+                    Console.WriteLine("Waiting for connection...\n");
+                    TcpClient s = listener.AcceptTcpClient();
+                    HttpProcessor processor = new HttpProcessor(s, this, serverCertificate);
+                    Thread thread = new Thread(new ThreadStart(processor.process));
+                    thread.Start();
+                    Thread.Sleep(10);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: connect.HttpServer.listen");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
             }
         }
 
@@ -411,7 +424,7 @@ namespace PaymentServer
                 httpServer = new MyHttpServer(Convert.ToInt16(args[0]), certificate);        
             } else {
                 certificate = "TempCert.cer";
-                httpServer = new MyHttpServer(443, certificate);           
+                httpServer = new MyHttpServer(443, certificate);
             }
             Thread thread = new Thread(new ThreadStart(httpServer.listen));
             thread.Start();
@@ -428,7 +441,13 @@ namespace PaymentServer
                             "getprofile USERNAME\n" +
                             "getth USERNAME\n" +
                             "getab USERNAME\n" +
-                            "getprofile COLUMN USERNAME\n");
+                            "getprofile COLUMN USERNAME\n" +
+                            "rs: restart the server thread\n");
+                    }
+                    else if (input[0].Equals("rs"))
+                    {
+                        Thread thread2 = new Thread(new ThreadStart(httpServer.listen));
+                        thread2.Start();
                     }
                 }
                 if (input.Length == 2)
@@ -437,6 +456,7 @@ namespace PaymentServer
                     {
                         paymentServer_dataBase DBHandler = new paymentServer_dataBase();
                         GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, input[1]);
+                        if (result.status == ResultCodeType.SUCC_UPDATE_USER_PROFILE)
                         Console.WriteLine("result: " + result.profile.getDatabaseValueList());
                     }
                     else if (input[0].Equals("getth"))

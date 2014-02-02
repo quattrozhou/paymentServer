@@ -66,7 +66,7 @@ namespace PaymentServer
             DBHandler.Insert(profile, items, values);
             DBHandler.Insert("authenticationList", "(authenticationString)", "('" + P.authenticationString + "')");
 
-            return ResultCodeType.RESULT_CREATE_PROFILE_SUCCESS;
+            return ResultCodeType.SUCC_CREATE_PROFILE;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace PaymentServer
             (paymentServer_dataBase DBHandler, string username)
         {
             GetProfileResultType reply = new GetProfileResultType();
-            reply.status = ResultCodeType.ERROR_get_profile;
+            reply.status = ResultCodeType.ERROR_GET_USER_PROFILE;
 
             int count = DBHandler.Count("*", "userProfile WHERE username='" + username + "'");
 
@@ -94,7 +94,7 @@ namespace PaymentServer
 
             UserProfile Profile = new UserProfile(list);
 
-            reply.status = ResultCodeType.UPDATE_USER_PROFILE_SUCCESS;
+            reply.status = ResultCodeType.SUCC_GET_USER_PROFILE;
             reply.profile = (UserProfile)Profile;
 
             return reply;
@@ -130,11 +130,11 @@ namespace PaymentServer
         public static ResultCodeType updateBalance(paymentServer_dataBase DBHandler, string username, long balance)
         {
             ResultCodeType res = new ResultCodeType();
-            res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
+            res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
 
             DBHandler.Update("userProfile", "acctBalance = " + balance + "", "username = '" + username+"'");
 
-            res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
+            res = ResultCodeType.SUCC_UPDATE_USER_PROFILE;
             return res;
         }
 
@@ -266,7 +266,7 @@ namespace PaymentServer
             paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             ResultCodeType res = new ResultCodeType();
-            res = ResultCodeType.ERROR_TRANSACTION_HISTORY_GET_PROFILE;
+            res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
 
             string oldTH = DBHandler.selectColumn("userProfile", "username", "" + tr.customerUsername, "transactionHistory");
             // if (list.Length != 1) return res; // exit if there is an error in database
@@ -280,11 +280,11 @@ namespace PaymentServer
 
             // string transactionHistory = list[0][25];
 
-            oldTH = oldTH + "\n" + tr.MyToString();
+            oldTH = tr.MyToString() + "\n\n" + oldTH;
 
             DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = '" + tr.customerUsername+"'");
 
-            res = ResultCodeType.SUCC_TRANSACTION_HISTORY_UPDATE;
+            res = ResultCodeType.SUCC_UPDATE_USER_PROFILE;
             return res;
         }
     }

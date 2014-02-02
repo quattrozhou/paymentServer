@@ -14,7 +14,7 @@ namespace PaymentServer
 
     public enum ResultCodeType
     {
-        ERROR_UNKNOWN = -1,
+        /*ERROR_UNKNOWN = -1,
         RESULT_CREATE_PROFILE_SUCCESS = 0,
         ERROR_CREATE_PROFILE_USERNAME_TAKEN = 1,
         ERROR_CREATE_PROFILE_UNSUPPORTED_INSTITUTION = 2,
@@ -28,9 +28,19 @@ namespace PaymentServer
         SUCC_TRANSACTION_HISTORY_UPDATE = 10,
         ERROR_CREATE_PROFILE_USERNAME_EXISTS = 11,
         ERROR_CREATE_PROFILE_EMAIL_EXISTS = 12,
+        ERROR_get_profile = 51,
+        */
         //all new codes should be placed above this line
 
-        ERROR_get_profile = 51,
+        SUCC_CREATE_PROFILE = 10,
+        ERROR_CREATE_PROFILE_USERNAME_EXISTS = 11,
+        ERROR_CREATE_PROFILE_EMAIL_EXISTS = 12,
+
+        SUCC_GET_USER_PROFILE = 20,
+        ERROR_GET_USER_PROFILE = 21,
+
+        SUCC_UPDATE_USER_PROFILE = 30,
+        ERROR_UPDATE_USER_PROFILE = 31,
 
         ERROR_CREATE_PROFILE_MAX
     };
@@ -74,7 +84,7 @@ namespace PaymentServer
     //THIS ENUMERATION MUST ALIGN WITH THE CURRENT DATABASE MODEL
     //DO NOT ADD OR MODIFY THIS ENUM UNLESS THE DATABASE MODEL HAS BEEN MODIFIED ACCORDINGLY
     //DOING SO WILL YIELD CATASTROPHIC RESULTS
-    public enum UserProfileEnum
+    /*public enum UserProfileEnum
     {
         userNo = 0,
         email = 1,
@@ -109,7 +119,7 @@ namespace PaymentServer
         createTime = 30,
         //All additions sould come above this line
         NUM_PROFILE_DATA_ITEMS
-    }
+    }*/
 
     public class UserProfile
     {
@@ -154,42 +164,55 @@ namespace PaymentServer
             if (input.Count != 30)
                 return;
 
-            this.userNo = Convert.ToInt32(input[0]);
-            this.email = input[1];
-            this.username = input[2];
-            this.password = input[3];        
-            this.userType = input[4];
-            this.firstName = input[5];
-            this.middleName = input[6];
-            this.lastName = input[7];
-            this.DOBDay = Convert.ToInt32(input[8]);
-            this.DOBMonth = Convert.ToInt32(input[9]);
-            this.DOBYear = Convert.ToInt32(input[10]);
-            this.occupation = input[11];
-            this.SIN = Convert.ToInt32(input[12]);
-            this.address1 = input[13];
-            this.address2 = input[14];
-            this.city = input[15];
-            this.province = input[16];
-            this.country = input[17];
-            this.postalCode = input[18];
-            this.phoneNumber = Convert.ToInt32(input[19]);
+            try
+            {
+                this.userNo = Convert.ToInt32(input[0]);
+                this.email = input[1];
+                this.username = input[2];
+                this.password = input[3];
+                this.userType = input[4];
+                this.firstName = input[5];
+                this.middleName = input[6];
+                this.lastName = input[7];
+                this.DOBDay = Convert.ToInt32(input[8]);
+                this.DOBMonth = Convert.ToInt32(input[9]);
+                this.DOBYear = Convert.ToInt32(input[10]);
+                this.occupation = input[11];
+                this.SIN = Convert.ToInt32(input[12]);
+                this.address1 = input[13];
+                this.address2 = input[14];
+                this.city = input[15];
+                this.province = input[16];
+                this.country = input[17];
+                this.postalCode = input[18];
+                this.phoneNumber = Convert.ToInt32(input[19]);
 
-            if(input[20].Equals("True")) this.receiveCommunication = 1;
-            else this.receiveCommunication = 0;
+                if (input[20].Equals("True")) this.receiveCommunication = 1;
+                else this.receiveCommunication = 0;
 
-            this.bankCode = input[21];        
-            this.accountNum = input[22];      
-            this.accountPWD = input[23]; 
-            this.acctBalance = Convert.ToDouble(input[24]);
-            this.transactionHistory = input[25];
-            this.POSHWID = Convert.ToInt32(input[26]);
-            this.currentDK = input[27];       
-            this.nextDK = input[28];          
-            this.authenticationString = input[29];
-            // this.createTime = input[30];
+                this.bankCode = input[21];
+                this.accountNum = input[22];
+                this.accountPWD = input[23];
+                this.acctBalance = Convert.ToDouble(input[24]);
+                this.transactionHistory = input[25];
+                this.POSHWID = Convert.ToInt32(input[26]);
+                this.currentDK = input[27];
+                this.nextDK = input[28];
+                this.authenticationString = input[29];
+                // this.createTime = input[30];
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: UserProfile.UserProfile(List <string> input)");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
+            }
         }
-
+        // when store a user profile in database, we need a column list
+        // this is the column list for the userProfile structure.
+        // note: change this function according to the user profile class content!
         public string getDatabaseColumnList()
         {
             return "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
@@ -218,7 +241,7 @@ namespace PaymentServer
         public string payerBalance;
         public string payeeBalance;
 
-        public string MyToString()
+        /*public string MyToString()
         {
             string output = "";
             if(status == FromBankServerMessageTypes.FROM_BANK_TRANSACTION_ACK)
@@ -227,7 +250,7 @@ namespace PaymentServer
                 output = output + " transaction not approved " + bankReplyMessage;
             // output = output + " receipt: "+receiptNumber;
             return output;
-        }
+        }*/
     }
 
     public enum ToBankServerMessageTypes
@@ -261,13 +284,16 @@ namespace PaymentServer
         FROM_BANK_TRANSACTION_NACK = 5,
 
         //  for internal use only (when error happens before contact bank)
-        AUTHEDICATION_SUCCESS = 50,
+        // AUTHEDICATION_SUCCESS = 50,
+        CURRENTLY_NO_ERROR = 50,
+
         ERROR_AUTHENDICATION_CUSTOMER = 51,
         ERROR_AUTHENDICATION_MERCHANT = 52,
 
         ERROR_GET_CUSTOMER_PROFILE = 53,
         ERROR_GET_MERCHANT_PROFILE = 54,
         
+        ERROR_RECEIVED_DATA_NOT_CORRECT = 55,
 
         ERROR_BEFORE_CONTACT_BANK = 90,
 
@@ -277,14 +303,14 @@ namespace PaymentServer
 
     class transactionRecord
     {
-        public DateTime time;
-        public string customerUsername;
-        public string merchantUsername;
-        public string amount;
-        public Boolean isRefund;
-        public FromBankServerMessageTypes status;
-        public string transactionMessage;
-        public string receiptNumber;
+        public DateTime time = new DateTime();
+        public string customerUsername = "";
+        public string merchantUsername = "";
+        public string amount = "0";
+        public Boolean isRefund = false;
+        public FromBankServerMessageTypes status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
+        public string transactionMessage = "";
+        public string receiptNumber = "";
         // public int userNo;
 
         public string customerBalance = "";
@@ -318,27 +344,18 @@ namespace PaymentServer
 
         public transactionRecord()
         {
-            time = new DateTime();
-            customerUsername = "";
-            merchantUsername = "";
-            amount = "0";
-            isRefund = false;
-            status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
-            transactionMessage = "";
-            receiptNumber = "";
-            // userNo = 0;
         }
 
         public string MyToString()
         {
             return "" + time.ToString() +
-                " payer: " + customerUsername +
-                " payee: " + merchantUsername +
-                " amount: " + amount +
-                " isRefund: " + isRefund +
-                " status: " + (int)status +
-                " message: " + transactionMessage +
-                " receiptNumber: " + receiptNumber;
+                "\npayer: " + customerUsername +
+                "\npayee: " + merchantUsername +
+                "\namount: " + amount +
+                "\nisRefund: " + isRefund +
+                "\nstatus: " + (int)status +
+                "\nmessage: " + transactionMessage +
+                "\nreceiptNumber: " + receiptNumber;
                 // " userNo: " + userNo;
         }
 

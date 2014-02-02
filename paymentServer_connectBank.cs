@@ -56,8 +56,10 @@ namespace PaymentServer
             message.Add(payeeBankCode);
             message.Add(paymentAmount);
 
-            TransactionResult result = new TransactionResult();
+            // send string to bank, and get returned string from bank
             String bankServerResult = sendStringToServer(message.ToString());
+
+            TransactionResult result = new TransactionResult();
 
             // nothing returned fram bank sever, means there is a time out
             if (bankServerResult.Length == 0)
@@ -69,14 +71,31 @@ namespace PaymentServer
                 result.payeeBalance = "not available";
                 return result;
             }
+            try
+            {
+                JObject received = JObject.Parse(bankServerResult);
+                result.status = (FromBankServerMessageTypes)(int)received.SelectToken("messageType");
+                result.bankReplyMessage = (string)received.SelectToken("details");
+                result.receiptNumber = (string)received.SelectToken("receiptNumber");
+                result.payerBalance = (string)received.SelectToken("payerBalance");
+                result.payeeBalance = (string)received.SelectToken("payeeBalance");
 
-            JObject received = JObject.Parse(bankServerResult);
-            result.status = (FromBankServerMessageTypes)(int)received.SelectToken("messageType");
-            result.bankReplyMessage = (string)received.SelectToken("details");
-            result.receiptNumber = (string)received.SelectToken("receiptNumber");
-            result.payerBalance = (string)received.SelectToken("payerBalance");
-            result.payeeBalance = (string)received.SelectToken("payeeBalance");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: connectBank.sendBankTransaction");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
+            }
 
+            result.status = FromBankServerMessageTypes.FROM_BANK_CONNECTION_FAIL;
+            result.bankReplyMessage = "not available";
+            result.receiptNumber = "not available";
+            result.payerBalance = "not available";
+            result.payeeBalance = "not available";
             return result;
         }
 
@@ -92,9 +111,10 @@ namespace PaymentServer
             HTTPCLIENT httpclient = new HTTPCLIENT(input);
             Thread thread = new Thread(new ThreadStart(httpclient.connect));
             thread.Start();
-            int countDownTimer = 350;
+            int countDownTimer = 360;
             while (thread.IsAlive && countDownTimer > 0)
             {
+                // if (countDownTimer < 350) Thread.Sleep(10);
                 Thread.Sleep(10);
                 countDownTimer--;
             }
@@ -124,12 +144,14 @@ namespace PaymentServer
     /// </summary>
     class HTTPCLIENT
     {
-        String contentSent = "";
-        String contentReceive = "";
+        private String contentSent = "";
+        private String contentReceive = "";
+
         public HTTPCLIENT(String c)
         {
             this.contentSent = c;
         }
+
         public void connect()
         {
             // Create a request using a URL that can receive a post. 
@@ -176,11 +198,14 @@ namespace PaymentServer
                 // Console.WriteLine("to bank server: read");
                 this.contentReceive = responseFromServer;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine("{0} Exception caught.", e);
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: connectBank.HTTPCLIENT.connect()");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
             }
-            // Console.ReadLine();
         }
 
         public String getContentReceive()

@@ -25,12 +25,13 @@ body {text-align:center;}
 <body>
 <h2>Payment Solution | Subscription Form</h2>
 <form id="form">
-<input id="messageType" type="hidden" name="messageType" value="0"> 
+<input id="messageType" type="hidden" name="messageType" value="0">   <!--> *CHANGE MESSAGE TYPE* <!-->
 <h1>Section 1 | Account Information</h1>
-<select id = "AccountType">
+<input id="Text1" type="text" name="accountType" placeholder="client or merchant*"/>
+<!--><select id = "AccountType">
     <option value = "1">Account Type*</option>
     <option value = "2">Client</option>
-    <option value = "3">Merchant</option></select>
+    <option value = "3">Merchant</option></select>  <!-->
 <br class ="small"><br class ="small">
 <input id="Email" type="text" name="email" placeholder="Email address*"/>
 <br class ="small"><br class ="small">
@@ -117,6 +118,13 @@ body {text-align:center;}
                 error: function (xhr, error) {
                     alert('Error! Status = ' + xhr.status + ' Message = ' + error);
                 },
+
+                //       success: function (data) {
+                //If Success display his name and tell him email is on the way... (Still working on this)
+
+                //      }
+
+
             });
             return false;
         });

@@ -260,7 +260,7 @@ namespace PaymentServer
                         }
 
                         GetProfileResultType UserProf = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, uName);
-                        if (UserProf.status != ResultCodeType.SUCC_UPDATE_USER_PROFILE)
+                        if (UserProf.status != ResultCodeType.SUCC_GET_USER_PROFILE)
                         {
                             messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_SEND_USER_PROFILE_FAILURE));
                             messageType.Add(new JsonBooleanValue("response", true));

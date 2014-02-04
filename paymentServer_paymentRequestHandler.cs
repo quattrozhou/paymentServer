@@ -79,6 +79,7 @@ namespace PaymentServer
                 tr.time = DateTime.Now;
                 tr.amount = (string)transactionJsonObj.SelectToken("amount");
                 tr.isRefund = (Boolean)transactionJsonObj.SelectToken("isRefund");
+                tr.status = FromBankServerMessageTypes.CURRENTLY_NO_ERROR;
 
                 return tr;
             }
@@ -144,12 +145,12 @@ namespace PaymentServer
             GetProfileResultType customerProfile = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, tr.customerUsername);
             GetProfileResultType merchantProfile = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, tr.merchantUsername);
 
-            if ((int)customerProfile.status > 50)
+            if (customerProfile.status != ResultCodeType.SUCC_GET_USER_PROFILE)
             {
                 tr.status = FromBankServerMessageTypes.ERROR_GET_CUSTOMER_PROFILE;
                 return tr;
             }
-            if ((int)merchantProfile.status > 50)
+            if (merchantProfile.status != ResultCodeType.SUCC_GET_USER_PROFILE)
             {
                 tr.status = FromBankServerMessageTypes.ERROR_GET_MERCHANT_PROFILE;
                 return tr;

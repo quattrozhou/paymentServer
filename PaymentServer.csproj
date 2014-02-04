@@ -115,6 +115,7 @@
     <Compile Include="paymentServer_requestHandler.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="paymentServer_webPortal.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

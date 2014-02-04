@@ -18,22 +18,11 @@ namespace PaymentServer
         {
             
             int count = DBHandler.Count("*", "authenticationList WHERE authenticationString='"+authenticationString+"'");
-            /*//JT:HACK Start
-            if (count == 0)
-            {
-                DBHandler.Insert("authenticationList", "(authenticationString)", "('"+authenticationString+"')"); 
-                Console.WriteLine("XXXX JT:HACK - ServerWorker::authenticateUser - Insertion successfull");
-                Console.WriteLine("XXXX JT:HACK - ServerWorker::authenticateUser - User not authenticated but was added to database");
-            }
-            //JT:HACK End */
 
-            if (count == 1)
+            if (count >= 1)
             {
-                // Console.WriteLine("ServerWorker::authenticateUser - User authenticated with {0}", authenticationString);
-                // DBHandler.Backup();
                 return true;
             }
-            // Console.WriteLine("ServerWorker::authenticateUser - Could not authenticate user. DB Query returned count of {0}", count);
             return false;
         }
 

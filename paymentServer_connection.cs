@@ -324,6 +324,7 @@ namespace PaymentServer
         public override void handleGETRequest (HttpProcessor p)
 		{
             paymentServer_requestHandler.handleRequest(p, null, "GET");    
+            // paymentServer_webPortal.handleGetRequest(p);
         }
 
         public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData) {
@@ -456,7 +457,7 @@ namespace PaymentServer
                     {
                         paymentServer_dataBase DBHandler = new paymentServer_dataBase();
                         GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, input[1]);
-                        if (result.status == ResultCodeType.SUCC_UPDATE_USER_PROFILE)
+                        if (result.status == ResultCodeType.SUCC_CREATE_PROFILE)
                         Console.WriteLine("result: " + result.profile.getDatabaseValueList());
                     }
                     else if (input[0].Equals("getth"))

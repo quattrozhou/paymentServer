@@ -383,6 +383,7 @@ namespace PaymentServer
                             messageType.Add(new JsonBooleanValue("response", true));
                             messageType.Add(new JsonBooleanValue("request", false));
                             messageType.Add(new JsonStringValue("details", "User account created"));
+                            paymentServer_email.emailSignupHandler(newProfile, "AccountCreated");
                         }
                         else if(rtype == ResultCodeType.ERROR_CREATE_PROFILE_EMAIL_EXISTS)
                         {

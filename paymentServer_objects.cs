@@ -155,6 +155,7 @@ namespace PaymentServer
         public string nextDK;               //base64-encoded
         public string authenticationString;  //base64-encoded
         // public string createTime;
+        public string merchantNumber;
 
         public UserProfile()
         { }
@@ -200,6 +201,7 @@ namespace PaymentServer
                 this.nextDK = input[28];
                 this.authenticationString = input[29];
                 // this.createTime = input[30];
+                this.merchantNumber = input[30];
             }
             catch (Exception ex)
             {
@@ -217,7 +219,7 @@ namespace PaymentServer
         {
             return "(userNo, username, email, password, userType, firstName, lastName, middleName, DOBDay, DOBMonth, DOBYear, " +
                 "occupation, SIN, address1, address2, city, province, country, postalCode, phoneNumber, receiveCommunication, " +
-                "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString)";
+                "bankCode, accountNum, accountPWD, acctBalance, transactionHistory, POSHWID, currentDK, nextDK, authenticationString, merchantNumber)";
         }
 
         public string getDatabaseValueList()
@@ -228,8 +230,9 @@ namespace PaymentServer
                 this.SIN + "', '" + this.address1 + "', '" + this.address2 + "', '" + this.city + "', '" + 
                 this.province + "', '" + this.country + "', '" +this.postalCode + "', '" + this.phoneNumber + "', '" + 
                 this.receiveCommunication + "', '" + this.bankCode + "', '" + this.accountNum + "', '" + 
-                this.accountPWD + "', '" + this.acctBalance + "', '" +this.transactionHistory + "', '" + 
-                this.POSHWID + "', '" +this.currentDK + "', '" + this.nextDK + "', '" + this.authenticationString + "')";
+                this.accountPWD + "', '" + this.acctBalance + "', '" +this.transactionHistory + "', '" +
+                this.POSHWID + "', '" + this.currentDK + "', '" + this.nextDK + "', '" + this.authenticationString + "', '" + 
+                this.merchantNumber + "')";
         }
     };
 
@@ -306,6 +309,7 @@ namespace PaymentServer
         public DateTime time = new DateTime();
         public string customerUsername = "";
         public string merchantUsername = "";
+        public string merchantNumber = "";
         public string amount = "0";
         public Boolean isRefund = false;
         public FromBankServerMessageTypes status = FromBankServerMessageTypes.ERROR_BEFORE_CONTACT_BANK;
@@ -348,11 +352,12 @@ namespace PaymentServer
 
         public string MyToString()
         {
+            string symbol = "";
+            if (isRefund) symbol = "-";
             return "" + time.ToString() +
-                "\npayer: " + customerUsername +
-                "\npayee: " + merchantUsername +
-                "\namount: " + amount +
-                "\nisRefund: " + isRefund +
+                "\ncustomer: " + customerUsername +
+                "\nmerchant: " + merchantUsername +
+                "\namount: " + symbol+amount +
                 "\nstatus: " + (int)status +
                 "\nmessage: " + transactionMessage +
                 "\nreceiptNumber: " + receiptNumber;

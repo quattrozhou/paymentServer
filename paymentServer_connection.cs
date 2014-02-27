@@ -15,7 +15,6 @@ using PaymentServer;
 
 namespace PaymentServer
 {
-
     public class HttpProcessor {
         public TcpClient socket;        
         public HttpServer srv;
@@ -52,15 +51,31 @@ namespace PaymentServer
         }
 
         public void process() {
-
-            // A client has connected. Create the  
-            // sslStream using the client's network stream.
-            sslStream = new SslStream(socket.GetStream(), false);
-            // Authenticate the server but don't require the client to authenticate. 
             try
             {
-                sslStream.AuthenticateAsServer(serverCert,
-                    false, SslProtocols.Tls, true);
+                // A client has connected. Create the  
+                // sslStream using the client's network stream.
+                sslStream = new SslStream(socket.GetStream(), false);
+
+                try
+                {
+                    // Authenticate the server but don't require the client to authenticate. 
+                    sslStream.AuthenticateAsServer(serverCert,
+                        false, SslProtocols.Tls, true);
+                }
+                catch (AuthenticationException e)
+                {
+                    Console.WriteLine("Exception: {0}", e.Message);
+                    if (e.InnerException != null)
+                    {
+                        Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
+                    }
+                    Console.WriteLine("Authentication failed - closing the connection.");
+                    sslStream.Close();
+                    socket.Close();
+                    return;
+                }
+                
                 // Display the properties and settings for the authenticated stream.
                 DisplaySecurityLevel(sslStream);
                 DisplaySecurityServices(sslStream);
@@ -101,19 +116,12 @@ namespace PaymentServer
                     return;
                 }
             }
-            catch (AuthenticationException e)
+            catch (Exception e)
             {
-                Console.WriteLine("Exception: {0}", e.Message);
-                if (e.InnerException != null)
-                {
-                    Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
-                }
-                Console.WriteLine("Authentication failed - closing the connection.");
-                sslStream.Close();
-                socket.Close();
+                Console.WriteLine("Exception: " + e.ToString());
+                writeFailure();
                 return;
             }
-            
             finally
             {
                 // The client stream will be closed with the sslStream 
@@ -443,7 +451,8 @@ namespace PaymentServer
                             "getth USERNAME\n" +
                             "getab USERNAME\n" +
                             "getprofile COLUMN USERNAME\n" +
-                            "rs: restart the server thread\n");
+                            "rs: restart the server thread\n"+
+                            "test");
                     }
                     else if (input[0].Equals("rs"))
                     {
@@ -457,13 +466,18 @@ namespace PaymentServer
                     {
                         paymentServer_dataBase DBHandler = new paymentServer_dataBase();
                         GetProfileResultType result = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, input[1]);
-                        if (result.status == ResultCodeType.SUCC_CREATE_PROFILE)
-                        Console.WriteLine("result: " + result.profile.getDatabaseValueList());
+                        if (result.status == ResultCodeType.SUCC_GET_USER_PROFILE)
+                            Console.WriteLine("result: " + result.profile.getDatabaseValueList());
                     }
                     else if (input[0].Equals("getth"))
                     {
                         paymentServer_dataBase DBHandler = new paymentServer_dataBase();
                         Console.WriteLine("result: " + DBHandler.selectColumn("userProfile", "username", input[1], "transactionHistory"));
+                    }
+                    else if(input[0].Equals("test"))
+                    {
+                        paymentServer_dataBase DBHandler = new paymentServer_dataBase();
+                        Console.WriteLine(DBHandler.SelectTest());
                     }
                     else
                     {

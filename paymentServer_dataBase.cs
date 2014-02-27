@@ -264,9 +264,53 @@ namespace PaymentServer
             }
         }
 
+        public string SelectTest()
+        {
+            string query = "SELECT * FROM userprofile where username='chang' LIMIT 0,1000";
+
+            //Create a list to store the result
+            /*int numRecords = Count("*", table);
+            List<string>[] list = new List<string>[numRecords];
+            for (int i = 0; i > numRecords; i++)
+            {
+                list[i] = new List<string>();
+            }*/
+
+            string read = "";
+
+            //Open connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+
+                //Read the data and store them in the list
+                int numReads = 0;
+                while (dataReader.Read())
+                {
+                    read = read + dataReader.GetString(0) + "";
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+
+                //return list to be displayed
+                return read;
+            }
+            else
+            {
+                return read;
+            }
+        }
+
         /// select a row in userProfile table, based on username specified
         /// return a list of string of the values
-        public List<string> selectWholeRow(string username)
+        public List<string> selectWholeRow(string searchColumn, string searchString)
         {
             string[] columns = {
                         "userNo", 
@@ -298,14 +342,15 @@ namespace PaymentServer
                         "POSHWID", 
                         "currentDK", 
                         "nextDK", 
-                        "authenticationString"};
+                        "authenticationString",
+                         "merchantNumber"};
                         // "createTime"};
 
             List<string> list = new List<string>();
 
             for (int i = 0; i < columns.Length; i++)
             {
-                list.Add(selectColumn("userProfile", "username", username, columns[i]));
+                list.Add(selectColumn("userProfile", searchColumn, searchString, columns[i]));
             }
             return list;
         }

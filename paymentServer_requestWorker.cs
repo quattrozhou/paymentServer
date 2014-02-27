@@ -27,6 +27,21 @@ namespace PaymentServer
         }
 
         /*
+         * Authenticate merchant, using merchant number
+         */
+        public static Boolean authenticateMerchant(paymentServer_dataBase DBHandler, string authenticationString)
+        {
+
+            int count = DBHandler.Count("*", "userProfile WHERE merchantNumber='" + authenticationString + "'");
+
+            if (count >= 1)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /*
          * create new user profile
          */
         public static ResultCodeType createNewProfile(paymentServer_dataBase DBHandler, UserProfile P)
@@ -79,7 +94,38 @@ namespace PaymentServer
                 return reply;
             }
 
-            List<string> list = DBHandler.selectWholeRow("" + username);
+            List<string> list = DBHandler.selectWholeRow("username", "" + username);
+
+            UserProfile Profile = new UserProfile(list);
+
+            reply.status = ResultCodeType.SUCC_GET_USER_PROFILE;
+            reply.profile = (UserProfile)Profile;
+
+            return reply;
+        }
+
+        /// <summary>
+        /// get user profile from database, search by username
+        /// </summary>
+        /// <param name="DBHandler"></param>
+        /// <param name="userNo"></param>
+        /// <returns></returns>
+        public static GetProfileResultType MYgetUserProfileByMerchantNumber
+            (paymentServer_dataBase DBHandler, string merchantNumber)
+        {
+            GetProfileResultType reply = new GetProfileResultType();
+            reply.status = ResultCodeType.ERROR_GET_USER_PROFILE;
+
+            int count = DBHandler.Count("*", "userProfile WHERE merchantNumber='" + merchantNumber + "'");
+
+            if (count != 1)
+            {
+                Console.WriteLine("ERROR - MYgetUserProfileBymerchantNumber!" +
+                    "Trying to get user profile, found " + count + " profiles match merchantNumber");
+                return reply;
+            }
+
+            List<string> list = DBHandler.selectWholeRow("merchantNumber", merchantNumber);
 
             UserProfile Profile = new UserProfile(list);
 
@@ -257,12 +303,28 @@ namespace PaymentServer
             ResultCodeType res = new ResultCodeType();
             res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
 
-            string oldTH = DBHandler.selectColumn("userProfile", "username", "" + tr.customerUsername, "transactionHistory");
+            string oldTH = "";
+
+            try
+            {
+                oldTH = DBHandler.selectColumn("userProfile", "username", "" + tr.customerUsername, "transactionHistory");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: paymentRequestHandler.getReceivedData(JObject received)");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
+
+                return res;
+            }
+            
             // if (list.Length != 1) return res; // exit if there is an error in database
 
             // if (list[0].Count() != (int)UserProfileEnum.NUM_PROFILE_DATA_ITEMS) return res; // exit if there is an error in one entry
 
-            res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
+            // res = ResultCodeType.ERROR_UPDATE_USER_PROFILE;
 
             // UserProfile p = new UserProfile();
             // PropertyInfo[] properties = p.GetType().GetProperties();
@@ -271,7 +333,20 @@ namespace PaymentServer
 
             oldTH = tr.MyToString() + "\n\n" + oldTH;
 
-            DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = '" + tr.customerUsername+"'");
+            try
+            {
+                DBHandler.Update("userProfile", "transactionHistory = '" + oldTH + "'", "username = '" + tr.customerUsername + "'");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=================Exception message start: =================");
+                Console.WriteLine("Time: " + DateTime.Now.ToString() + "");
+                Console.WriteLine("Position: paymentRequestHandler.getReceivedData(JObject received)");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================Exception message end: ===================\n");
+
+                return res;
+            }
 
             res = ResultCodeType.SUCC_UPDATE_USER_PROFILE;
             return res;

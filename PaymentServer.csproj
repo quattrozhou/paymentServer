@@ -111,6 +111,7 @@
   <ItemGroup>
     <Compile Include="paymentServer_connectBank.cs" />
     <Compile Include="paymentServer_dataBase.cs" />
+    <Compile Include="paymentServer_email.cs" />
     <Compile Include="paymentServer_paymentRequestHandler.cs" />
     <Compile Include="paymentServer_requestHandler.cs">
       <SubType>Code</SubType>

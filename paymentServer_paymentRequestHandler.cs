@@ -20,6 +20,9 @@ namespace PaymentServer
 {
     class paymentServer_paymentRequestHandler
     {
+        // payment server control variale
+        public static Boolean authenticateMerchantUsingMID = false;
+
         public static void println(string input)
         {
             Console.WriteLine(input);
@@ -34,7 +37,7 @@ namespace PaymentServer
         {
             println("------------------Received message start: ---------------------\n");
             println(received.ToString());
-            println("------------------Received message end: ---------------------\n");
+            println("------------------Received message end: -----------------------\n");
 
             transactionRecord tr = getReceivedData(received);
 
@@ -71,11 +74,13 @@ namespace PaymentServer
                 JObject customerJObject = (JObject)received.SelectToken("customer");
                 string custUsername = (string)customerJObject.SelectToken("custUsername");
                 JObject merchantJObject = (JObject)received.SelectToken("merchantIdent");
-                string merchantUsername = (string)merchantJObject.SelectToken("merchantUsername");
+                // string merchantUsername = (string)merchantJObject.SelectToken("merchantUsername");
                 JObject transactionJsonObj = (JObject)received.SelectToken("transactions");
 
                 tr.customerUsername = custUsername;
-                tr.merchantUsername = merchantUsername;
+                // tr.merchantUsername = merchantUsername;
+                tr.merchantNumber = (string)merchantJObject.SelectToken("merchantNumber");
+                
                 tr.time = DateTime.Now;
                 tr.amount = (string)transactionJsonObj.SelectToken("amount");
                 tr.isRefund = (Boolean)transactionJsonObj.SelectToken("isRefund");
@@ -120,7 +125,7 @@ namespace PaymentServer
             }
 
             // merchant ID and password, prepare for merchant authentication
-            JObject merchantJObject = (JObject)received.SelectToken("merchantIdent");
+            /*JObject merchantJObject = (JObject)received.SelectToken("merchantIdent");
             string merchantUsername = (string)merchantJObject.SelectToken("merchantUsername");
             string merchantPWD = (string)merchantJObject.SelectToken("merchantPWD");
             string merchantAuthString = "" + merchantUsername + merchantPWD;
@@ -128,6 +133,14 @@ namespace PaymentServer
             //// ------------authentication merchant-------------------------------------
             // authentication merchant
             if ((!paymentServer_requestWorker.authenticateUser(DBHandler, merchantAuthString)) && isRefundT)
+            {
+                return FromBankServerMessageTypes.ERROR_AUTHENDICATION_MERCHANT;
+            }*/
+
+            JObject merchantJObject = (JObject)received.SelectToken("merchantIdent");
+            string merchantNumber = (string)merchantJObject.SelectToken("merchantNumber");
+
+            if ((!paymentServer_requestWorker.authenticateMerchant(DBHandler, merchantNumber)) && isRefundT)
             {
                 return FromBankServerMessageTypes.ERROR_AUTHENDICATION_MERCHANT;
             }
@@ -143,7 +156,8 @@ namespace PaymentServer
         public static transactionRecord connectToBank(paymentServer_dataBase DBHandler, transactionRecord tr)
         {
             GetProfileResultType customerProfile = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, tr.customerUsername);
-            GetProfileResultType merchantProfile = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, tr.merchantUsername);
+            // GetProfileResultType merchantProfile = paymentServer_requestWorker.MYgetUserProfileByUsername(DBHandler, tr.merchantUsername);
+            GetProfileResultType merchantProfile = paymentServer_requestWorker.MYgetUserProfileByMerchantNumber(DBHandler, tr.merchantNumber);
 
             if (customerProfile.status != ResultCodeType.SUCC_GET_USER_PROFILE)
             {
@@ -233,7 +247,7 @@ namespace PaymentServer
                     messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_SUCCESSFUL));
                     messageType.Add(new JsonBooleanValue("request", false));
                     messageType.Add(new JsonBooleanValue("response", false));
-                    messageType.Add(new JsonStringValue("details", "" + tr.status.ToString() + "message: " + tr.transactionMessage));
+                    messageType.Add(new JsonStringValue("details", "" + tr.status.ToString() + " message: " + tr.transactionMessage));
                     defineResponse.Add(messageType);
                 }
                 else
@@ -241,7 +255,7 @@ namespace PaymentServer
                     messageType.Add(new JsonNumericValue("code", (int)clientOutgoingCodeEnum.OUT_CODE_PAYMENT_FAILURE));
                     messageType.Add(new JsonBooleanValue("request", false));
                     messageType.Add(new JsonBooleanValue("response", false));
-                    messageType.Add(new JsonStringValue("details", "" + tr.status.ToString() + "message: " + tr.transactionMessage));
+                    messageType.Add(new JsonStringValue("details", "" + tr.status.ToString() + " message: " + tr.transactionMessage));
                     defineResponse.Add(messageType);
                 }
                 
